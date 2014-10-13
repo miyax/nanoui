@@ -202,12 +202,12 @@ public:
 
 	Slider();
 	Slider( const char * name , const char * title, int x, int y, int width, int height  );
-	setMinMax( float min, float max ){ this->min = min; this->max = max; }
+	void setMinMax( float min, float max ){ this->min = min; this->max = max; }
 	virtual ~Slider( );
 	virtual void draw( Screen * sp, NVGcontext* vg );
 	
-	virtual void onButtonOn();
-	virtual void onDragMoveCursol( int x, int y );
+	virtual void onButtonOn(){};
+	virtual void onDragMoveCursol( int x, int y ){};
 	
 };
 

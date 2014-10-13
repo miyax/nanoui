@@ -122,6 +122,7 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 	{
 		if( items[i]->onButtonEvnet( sp,x,y, btnstate) == true )
 		{
+			state = stIDLE;
 			sp->matrix.pop_back();
 			return true;
 		}
@@ -162,8 +163,8 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 			switch( state )
 			{
 			case stIDLE:
-				state = stON;
-				onButtonOn();
+				//state = stON;
+				//onButtonOn();
 				break;
 			case stHOVER:
 				state = stON;
