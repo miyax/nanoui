@@ -76,16 +76,23 @@ public:
 	
 	int initWidgets()
 	{
-		shared_ptr<Panel> p(new Panel( "panel1","test1", 10,10, 200,480 ));
-	      shared_ptr<OnClickbck> fp(new OnClickbck());
+		shared_ptr<Panel> p(new Panel( "panel1","Panel Test", 10,10, 200,480 ));
+
+			// preper callback function
+			shared_ptr<OnClickbck> fp(new OnClickbck());
 		  
-		  
-		  shared_ptr<Button> btn1(new Button( "btn1","OK", 0,0, 190,30 ));
-		  btn1->connect( WE_ON_CLICK, fp );
-		  
-		  p->addWidget(btn1);
-		  
+			shared_ptr<Button> btn1(new Button( "btn1","OK", 0,0, FIT_PARENT,WRAP_CONTENT ));
+			btn1->connect( WE_ON_CLICK, fp );
+			p->addWidget(btn1);
 		
+			shared_ptr<Button> btn2(new Button( "btn2","OK2", 0,0, FIT_PARENT,WRAP_CONTENT ));
+			btn2->connect( WE_ON_CLICK, fp );
+			p->addWidget(btn2);  
+	
+			shared_ptr<CheckButton> btn3(new CheckButton( "btn3","CheckBoxTest", 0,0, FIT_PARENT,WRAP_CONTENT ));
+			btn3->connect( WE_ON_CLICK, fp );
+			p->addWidget(btn3);  
+				
 		addWidget(p);
 		return 0;
 	}

@@ -76,6 +76,9 @@ enum eEvent
 	WE_MAX
 };
 
+const int FIT_PARENT = -1;
+const int WRAP_CONTENT = -2;
+
 class Widget;
 typedef vector<shared_ptr<Widget>> vecWidget;
 class Screen;
@@ -190,6 +193,19 @@ public:
 	virtual ~Button( );
 	virtual void draw( Screen * sp, NVGcontext* vg );
 
+};
+
+//----------------------------------------------------------------------
+class CheckButton : public Widget
+{
+protected:
+	string title;
+
+public:
+	CheckButton();
+	CheckButton( const char * name , const char * title, int x, int y, int width, int height  );
+	virtual ~CheckButton( );
+	virtual void draw( Screen * sp, NVGcontext* vg );
 };
 
 typedef deque<Matrix4x4> queMatrix;

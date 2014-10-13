@@ -23,6 +23,13 @@ THE SOFTWARE.
 #include <stdio.h>
 #include "nanoui.h"
 
+#define ICON_SEARCH 0x1F50D
+#define ICON_CIRCLED_CROSS 0x2716
+#define ICON_CHEVRON_RIGHT 0xE75E
+#define ICON_CHECK 0x2713
+#define ICON_LOGIN 0xE740
+#define ICON_TRASH 0xE729
+
 Widget::Widget()
 {
 	invalid = true;
@@ -263,7 +270,27 @@ void Panel::addWidget( shared_ptr<Widget> item )
 { 
 	item->pos.x = 4;
 	item->pos.y = row;
-	item->matrix.translate( 4, row, 0.0f );
+	item->matrix.translate( item->pos.x, item->pos.y, 0.0f );
+	
+	// 
+	if( FIT_PARENT == item->size.w )
+	{
+		item->size.w = this->size.w - (4*2);
+	}else if( WRAP_CONTENT == item->size.w ) 
+	{
+		// TODO
+		item->size.w = this->size.w - (4*2);
+	}
+	 
+	// 
+	if( FIT_PARENT == item->size.h )
+	{
+		item->size.h = this->size.h - row - (4*2);
+	}else if( WRAP_CONTENT == item->size.h ) 
+	{
+		item->size.h = 32;
+	} 
+	
 	row += item->size.h + 4;
 	items.push_back(item);
 	invalid = true;
@@ -430,6 +457,69 @@ void Button::draw( Screen * sp, NVGcontext* vg )
 	Widget::draw(sp,vg);
 	nvgRestore(vg);
 	
+}
+
+CheckButton::CheckButton()
+{
+	
+}
+	
+CheckButton::CheckButton( const char * name , const char * title, int x, int y, int width, int height  )
+{
+	draggable = false;
+	this->name = name;
+	this->title = title;
+	pos.x = x;
+	pos.y = y;
+	size.w = width;
+	size.h = height;	
+}
+	
+CheckButton::~CheckButton( )
+{
+	
+}
+	
+void CheckButton::draw( Screen * sp, NVGcontext* vg )
+{
+	NVGpaint bg;
+	char icon[8];
+
+	
+	float x = 0;
+	float y = 0;
+	float w = size.w;
+	float h = size.h;
+	
+	NVG_NOTUSED(w);
+
+	nvgSave(vg);
+	float m[6];
+	matrix.getMatrix2x3( m );
+	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] ); 
+	
+
+	nvgFontSize(vg, 18.0f);
+	nvgFontFace(vg, "sans");
+	nvgFillColor(vg, nvgRGBA(255,255,255,160));
+
+	nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
+	nvgText(vg, x+28,y+h*0.5f,title.c_str(), NULL);
+
+	bg = nvgBoxGradient(vg, x+1,y+(int)(h*0.5f)-9+1, 18,18, 3,3, nvgRGBA(0,0,0,32), nvgRGBA(0,0,0,92));
+	nvgBeginPath(vg);
+	nvgRoundedRect(vg, x+1,y+(int)(h*0.5f)-9, 18,18, 3);
+	nvgFillPaint(vg, bg);
+	nvgFill(vg);
+
+	nvgFontSize(vg, 40);
+	nvgFontFace(vg, "icons");
+	nvgFillColor(vg, nvgRGBA(255,255,255,128));
+	nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+	nvgText(vg, x+9+2, y+h*0.5f, cpToUTF8(ICON_CHECK,icon), NULL);
+	
+	Widget::draw(sp,vg);
+	nvgRestore(vg);	
 }
 
 
