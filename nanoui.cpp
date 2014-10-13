@@ -23,12 +23,45 @@ THE SOFTWARE.
 #include <stdio.h>
 #include "nanoui.h"
 
+namespace nanoui {
+
 #define ICON_SEARCH 0x1F50D
 #define ICON_CIRCLED_CROSS 0x2716
 #define ICON_CHEVRON_RIGHT 0xE75E
 #define ICON_CHECK 0x2713
 #define ICON_LOGIN 0xE740
 #define ICON_TRASH 0xE729
+
+	int isBlack(NVGcolor col)
+	{
+		if( col.r == 0.0f && col.g == 0.0f && col.b == 0.0f && col.a == 0.0f )
+		{
+			return 1;
+		}
+		return 0;
+	}
+	
+	static char* cpToUTF8(int cp, char* str)
+	{
+		int n = 0;
+		if (cp < 0x80) n = 1;
+		else if (cp < 0x800) n = 2;
+		else if (cp < 0x10000) n = 3;
+		else if (cp < 0x200000) n = 4;
+		else if (cp < 0x4000000) n = 5;
+		else if (cp <= 0x7fffffff) n = 6;
+		str[n] = '\0';
+		switch (n) {
+		case 6: str[5] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x4000000;
+		case 5: str[4] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x200000;
+		case 4: str[3] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x10000;
+		case 3: str[2] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x800;
+		case 2: str[1] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0xc0;
+		case 1: str[0] = cp;
+		}
+		return str;
+	}
+	
 
 Widget::Widget()
 {
@@ -473,11 +506,27 @@ CheckButton::CheckButton( const char * name , const char * title, int x, int y, 
 	pos.y = y;
 	size.w = width;
 	size.h = height;	
+	check_state = UnChecked;
 }
 	
 CheckButton::~CheckButton( )
 {
+
 	
+}
+
+void CheckButton::onClick()
+{
+	switch(check_state)
+	{
+	case UnChecked:
+		check_state = Checked;
+		break;
+	case Checked:
+		check_state = UnChecked;
+		break;
+	}
+	invalid=true;
 }
 	
 void CheckButton::draw( Screen * sp, NVGcontext* vg )
@@ -512,16 +561,98 @@ void CheckButton::draw( Screen * sp, NVGcontext* vg )
 	nvgFillPaint(vg, bg);
 	nvgFill(vg);
 
-	nvgFontSize(vg, 40);
-	nvgFontFace(vg, "icons");
-	nvgFillColor(vg, nvgRGBA(255,255,255,128));
-	nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
-	nvgText(vg, x+9+2, y+h*0.5f, cpToUTF8(ICON_CHECK,icon), NULL);
+	if( Checked == check_state )
+	{
+		nvgFontSize(vg, 40);
+		nvgFontFace(vg, "icons");
+		nvgFillColor(vg, nvgRGBA(255,255,255,128));
+		nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+		nvgText(vg, x+9+2, y+h*0.5f, cpToUTF8(ICON_CHECK,icon), NULL);
+	}
 	
 	Widget::draw(sp,vg);
 	nvgRestore(vg);	
 }
 
+Slider::Slider()
+{
+	draggable = false;
+}
+	
+Slider::Slider( const char * name , const char * title, int x, int y, int width, int height  )
+{
+	draggable = false;
+	this->name = name;
+	pos.x = x;
+	pos.y = y;
+	size.w = width;
+	size.h = height;
+	slider_pos = 0.5f;	
+}
+	
+Slider::~Slider( )
+{
+
+	
+}
+
+void Slider::draw( Screen * sp, NVGcontext* vg )
+{
+	float x = 0;
+	float y = 0;
+	float w = size.w;
+	float h = size.h;
+	
+	NVG_NOTUSED(w);
+
+	nvgSave(vg);
+	float m[6];
+	matrix.getMatrix2x3( m );
+	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] ); 
+	
+
+	NVGpaint bg, knob;
+	float cy = y+(int)(h*0.5f);
+	float kr = (int)(h*0.25f);
+
+	nvgSave(vg);
+//	nvgClearState(vg);
+
+	// Slot
+	bg = nvgBoxGradient(vg, x,cy-2+1, w,4, 2,2, nvgRGBA(0,0,0,32), nvgRGBA(0,0,0,128));
+	nvgBeginPath(vg);
+	nvgRoundedRect(vg, x,cy-2, w,4, 2);
+	nvgFillPaint(vg, bg);
+	nvgFill(vg);
+
+	// Knob Shadow
+	bg = nvgRadialGradient(vg, x+(int)(slider_pos*w),cy+1, kr-3,kr+3, nvgRGBA(0,0,0,64), nvgRGBA(0,0,0,0));
+	nvgBeginPath(vg);
+	nvgRect(vg, x+(int)(slider_pos*w)-kr-5,cy-kr-5,kr*2+5+5,kr*2+5+5+3);
+	nvgCircle(vg, x+(int)(slider_pos*w),cy, kr);
+	nvgPathWinding(vg, NVG_HOLE);
+	nvgFillPaint(vg, bg);
+	nvgFill(vg);
+
+	// Knob
+	knob = nvgLinearGradient(vg, x,cy-kr,x,cy+kr, nvgRGBA(255,255,255,16), nvgRGBA(0,0,0,16));
+	nvgBeginPath(vg);
+	nvgCircle(vg, x+(int)(slider_pos*w),cy, kr-1);
+	nvgFillColor(vg, nvgRGBA(40,43,48,255));
+	nvgFill(vg);
+	nvgFillPaint(vg, knob);
+	nvgFill(vg);
+
+	nvgBeginPath(vg);
+	nvgCircle(vg, x+(int)(slider_pos*w),cy, kr-0.5f);
+	nvgStrokeColor(vg, nvgRGBA(0,0,0,92));
+	nvgStroke(vg);
+
+	nvgRestore(vg);
+	
+	Widget::draw(sp,vg);
+	nvgRestore(vg);	
+}
 
 Screen::Screen()
 {
@@ -598,5 +729,7 @@ int Screen::draw( int width, int height )
 				
 	return 0;
 		
+}
+
 }
 	

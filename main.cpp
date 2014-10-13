@@ -30,6 +30,8 @@ THE SOFTWARE.
 
 #include "nanoui.h"
 
+using namespace nanoui;
+
 void errorcb(int error, const char* desc)
 {
 	printf("GLFW error %d: %s\n", error, desc);
@@ -92,7 +94,10 @@ public:
 			shared_ptr<CheckButton> btn3(new CheckButton( "btn3","CheckBoxTest", 0,0, FIT_PARENT,WRAP_CONTENT ));
 			btn3->connect( WE_ON_CLICK, fp );
 			p->addWidget(btn3);  
-				
+	
+			shared_ptr<Slider> btn4(new Slider( "btn3","Slider", 0,0, FIT_PARENT,WRAP_CONTENT ));
+			p->addWidget(btn4); 
+						
 		addWidget(p);
 		return 0;
 	}

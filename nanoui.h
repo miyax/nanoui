@@ -35,6 +35,8 @@ THE SOFTWARE.
 #include <memory>
 using namespace std;
 
+namespace nanoui {
+
 #include "nanoui_matrix.h"
 
 struct Position
@@ -103,51 +105,18 @@ protected:
 	eWidgetState state;
 	
 	// CursolEvent
-	void onHoverCursol( int x, int y);
-	void onHoverMoveCursol( int x, int y);
-	void onClick();
-	void onButtonOn();
-	void onDragMoveCursol( int x, int y );
-	void onLeaveCursol();
+	virtual void onHoverCursol( int x, int y);
+	virtual void onHoverMoveCursol( int x, int y);
+	virtual void onClick();
+	virtual void onButtonOn();
+	virtual void onDragMoveCursol( int x, int y );
+	virtual void onLeaveCursol();
 	
 	bool draggable;
 	bool dragging;
 	Position drag_point;
 	
-	
-	
-	
 	shared_ptr<EventCallBack> cbks[WE_MAX];
-	
-	int isBlack(NVGcolor col)
-	{
-		if( col.r == 0.0f && col.g == 0.0f && col.b == 0.0f && col.a == 0.0f )
-		{
-			return 1;
-		}
-		return 0;
-	}
-	
-	static char* cpToUTF8(int cp, char* str)
-	{
-		int n = 0;
-		if (cp < 0x80) n = 1;
-		else if (cp < 0x800) n = 2;
-		else if (cp < 0x10000) n = 3;
-		else if (cp < 0x200000) n = 4;
-		else if (cp < 0x4000000) n = 5;
-		else if (cp <= 0x7fffffff) n = 6;
-		str[n] = '\0';
-		switch (n) {
-		case 6: str[5] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x4000000;
-		case 5: str[4] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x200000;
-		case 4: str[3] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x10000;
-		case 3: str[2] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0x800;
-		case 2: str[1] = 0x80 | (cp & 0x3f); cp = cp >> 6; cp |= 0xc0;
-		case 1: str[0] = cp;
-		}
-		return str;
-	}
 
 public:	
 	Position pos;
@@ -198,14 +167,48 @@ public:
 //----------------------------------------------------------------------
 class CheckButton : public Widget
 {
+public:
+	enum eCheckState
+	{
+		Checked,
+		UnChecked,
+	};
+
 protected:
 	string title;
-
+	eCheckState check_state;
 public:
+	
+	eCheckState getCheckState(){ return check_state; }
+	
 	CheckButton();
 	CheckButton( const char * name , const char * title, int x, int y, int width, int height  );
 	virtual ~CheckButton( );
 	virtual void draw( Screen * sp, NVGcontext* vg );
+	virtual void onClick();
+
+};
+
+//----------------------------------------------------------------------
+class Slider : public Widget
+{
+public:
+
+protected:
+	float min;
+	float max;
+	float slider_pos;
+public:
+
+	Slider();
+	Slider( const char * name , const char * title, int x, int y, int width, int height  );
+	setMinMax( float min, float max ){ this->min = min; this->max = max; }
+	virtual ~Slider( );
+	virtual void draw( Screen * sp, NVGcontext* vg );
+	
+	virtual void onButtonOn();
+	virtual void onDragMoveCursol( int x, int y );
+	
 };
 
 typedef deque<Matrix4x4> queMatrix;
@@ -228,5 +231,6 @@ public:
 	int draw( int width, int height );
 };
 
+}
 
 #endif // _NANOUI_H_
