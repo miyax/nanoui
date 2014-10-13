@@ -1,0 +1,4 @@
+#define VERSION_MAJOR @version_major@
+#define VERSION_MINOR @version_minor@
+#define VERSION_PATCH @version_patch@
+#define WIN_GL_LIBRARY "@WIN_GL_LIBRARY@"
