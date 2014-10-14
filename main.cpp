@@ -97,6 +97,12 @@ public:
 	
 			shared_ptr<Slider> btn4(new Slider( "btn3","Slider", 0,0, FIT_PARENT,WRAP_CONTENT ));
 			p->addWidget(btn4); 
+
+			shared_ptr<Editbox> edit(new Editbox( "edt1","AbCdEfG", 0,0, FIT_PARENT,WRAP_CONTENT ));
+			p->addWidget(edit); 
+			
+			
+			
 						
 		addWidget(p);
 		return 0;

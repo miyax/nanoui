@@ -71,6 +71,8 @@ Widget::Widget()
 	draggable = true;
 	dragging = false;
 	//Position drag_point;
+	
+	margin = 4.0;
 
 }
 
@@ -98,7 +100,7 @@ void Widget::onClick()
 	printf("%s onClick\n", name.c_str());
 }
 
-void Widget::onButtonOn()
+void Widget::onButtonOn( int x, int y )
 {
 	printf("onButtonOn\n");
 }
@@ -143,6 +145,9 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 	// inside region ?
 	if( x > lefttop_x && y > lefttop_y && x < rightbottom_x && y < rightbottom_y )
 	{
+		float rx = x-lefttop_x;
+		float ry = y-lefttop_y;
+		
 		switch(btnstate)
 		{
 		case btnOFF:
@@ -150,10 +155,10 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 			{
 			case stIDLE:
 				state = stHOVER;
-				onHoverCursol(x,y);
+				onHoverCursol(rx,ry);
 				break;
 			case stHOVER:
-				onHoverMoveCursol(x,y);
+				onHoverMoveCursol(rx,ry);
 				break;
 			case stON:
 				state = stHOVER;
@@ -171,10 +176,10 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 				break;
 			case stHOVER:
 				state = stON;
-				onButtonOn();
+				onButtonOn(rx,ry);
 				break;
 			case stON:
-				onDragMoveCursol(x,y);
+				onDragMoveCursol(rx,ry);
 				
 				if( dragging == false && draggable )
 				{
@@ -305,30 +310,30 @@ Panel::~Panel()
 
 void Panel::addWidget( shared_ptr<Widget> item )
 { 
-	item->pos.x = 4;
+	item->pos.x = item->margin;
 	item->pos.y = row;
 	item->matrix.translate( item->pos.x, item->pos.y, 0.0f );
 	
 	// 
 	if( FIT_PARENT == item->size.w )
 	{
-		item->size.w = this->size.w - (4*2);
+		item->size.w = this->size.w - (item->margin*2);
 	}else if( WRAP_CONTENT == item->size.w ) 
 	{
 		// TODO
-		item->size.w = this->size.w - (4*2);
+		item->size.w = this->size.w - (item->margin*2);
 	}
 	 
 	// 
 	if( FIT_PARENT == item->size.h )
 	{
-		item->size.h = this->size.h - row - (4*2);
+		item->size.h = this->size.h - row - (item->margin*2);
 	}else if( WRAP_CONTENT == item->size.h ) 
 	{
 		item->size.h = 32;
 	} 
 	
-	row += item->size.h + 4;
+	row += item->size.h + margin;
 	items.push_back(item);
 	invalid = true;
 } 
@@ -581,6 +586,8 @@ void CheckButton::draw( Screen * sp, NVGcontext* vg )
 Slider::Slider()
 {
 	draggable = false;
+	slider_pos = 0.5f;	
+	margin = 8.0;
 }
 	
 Slider::Slider( const char * name , const char * title, int x, int y, int width, int height  )
@@ -592,6 +599,7 @@ Slider::Slider( const char * name , const char * title, int x, int y, int width,
 	size.w = width;
 	size.h = height;
 	slider_pos = 0.5f;	
+	margin = 8.0;
 }
 	
 Slider::~Slider( )
@@ -599,6 +607,19 @@ Slider::~Slider( )
 
 	
 }
+
+void Slider::onButtonOn( int x, int y )
+{
+	slider_pos = (float)x / float(size.w);
+	invalid = true;
+}
+
+void Slider::onDragMoveCursol( int x, int y )
+{
+	slider_pos = (float)x / float(size.w);
+	invalid = true;
+}
+
 
 void Slider::draw( Screen * sp, NVGcontext* vg )
 {
@@ -653,6 +674,63 @@ void Slider::draw( Screen * sp, NVGcontext* vg )
 	nvgStroke(vg);
 
 	nvgRestore(vg);
+	
+	Widget::draw(sp,vg);
+	nvgRestore(vg);	
+}
+
+Editbox::Editbox()
+{
+	
+} 
+
+Editbox::~Editbox()
+{
+	
+} 
+
+Editbox::Editbox( const char * name , const char * text, int x, int y, int width, int height  )
+{
+	draggable = false;
+	this->name = name;
+	this->text = text;
+	pos.x = x;
+	pos.y = y;
+	size.w = width;
+	size.h = height;
+}
+
+void Editbox::draw( Screen * sp, NVGcontext* vg )
+{
+	NVGpaint bg;
+	
+	float x = 0;
+	float y = 0;
+	float w = size.w;
+	float h = size.h;
+
+	nvgSave(vg);
+	float m[6];
+	matrix.getMatrix2x3( m );
+	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] ); 
+
+	bg = nvgBoxGradient(vg, x+1,y+1+1.5f, w-2,h-2, 3,4, nvgRGBA(255,255,255,32), nvgRGBA(32,32,32,32));
+	nvgBeginPath(vg);
+	nvgRoundedRect(vg, x+1,y+1, w-2,h-2, 4-1);
+	nvgFillPaint(vg, bg);
+	nvgFill(vg);
+
+	nvgBeginPath(vg);
+	nvgRoundedRect(vg, x+0.5f,y+0.5f, w-1,h-1, 4-0.5f);
+	nvgStrokeColor(vg, nvgRGBA(0,0,0,48));
+	nvgStroke(vg);	
+	
+	nvgFontSize(vg, 20.0f);
+	nvgFontFace(vg, "sans");
+	nvgFillColor(vg, nvgRGBA(255,255,255,64));
+	nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
+	nvgText(vg, x+h*0.3f,y+h*0.5f,text.c_str(), NULL);
+	
 	
 	Widget::draw(sp,vg);
 	nvgRestore(vg);	
