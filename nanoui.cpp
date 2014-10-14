@@ -122,7 +122,10 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 	{
 		if( items[i]->onButtonEvnet( sp,x,y, btnstate) == true )
 		{
-			state = stIDLE;
+			if( !dragging )
+			{ 
+				state = stIDLE;
+			}
 			sp->matrix.pop_back();
 			return true;
 		}
