@@ -61,11 +61,11 @@ static void buttoncb(GLFWwindow* window, int button, int action, int mods)
 
 class NanoUiTest : public Screen
 {
-	
+
 public:
 	NanoUiTest( )
 	{
-		
+
 	}
 
 	struct OnClickbck : public EventCallBack
@@ -75,39 +75,40 @@ public:
 			printf("hit!!");
 		}
 	};
-	
+
 	int initWidgets()
 	{
 		shared_ptr<Panel> p(new Panel( "panel1","Panel Test", 10,10, 200,480 ));
 
 			// preper callback function
 			shared_ptr<OnClickbck> fp(new OnClickbck());
-		  
+
 			shared_ptr<Button> btn1(new Button( "btn1","OK", 0,0, FIT_PARENT,WRAP_CONTENT ));
 			btn1->connect( WE_ON_CLICK, fp );
 			p->addWidget(btn1);
-		
+
 			shared_ptr<Button> btn2(new Button( "btn2","OK2", 0,0, FIT_PARENT,WRAP_CONTENT ));
 			btn2->connect( WE_ON_CLICK, fp );
-			p->addWidget(btn2);  
-	
+			p->addWidget(btn2);
+
 			shared_ptr<CheckButton> btn3(new CheckButton( "btn3","CheckBoxTest", 0,0, FIT_PARENT,WRAP_CONTENT ));
 			btn3->connect( WE_ON_CLICK, fp );
-			p->addWidget(btn3);  
-	
+			p->addWidget(btn3);
+
 			shared_ptr<Slider> btn4(new Slider( "btn3","Slider", 0,0, FIT_PARENT,WRAP_CONTENT ));
-			p->addWidget(btn4); 
+			p->addWidget(btn4);
 
 			shared_ptr<Editbox> edit(new Editbox( "edt1","AbCdEfG", 0,0, FIT_PARENT,WRAP_CONTENT ));
-			p->addWidget(edit); 
-			
-			
-			
-						
+			p->addWidget(edit);
+
+			shared_ptr<Label> lb(new Label( "llbb","AbCdEfG", 0,0, FIT_PARENT,WRAP_CONTENT ));
+			p->addWidget(lb);
+
+
 		addWidget(p);
 		return 0;
 	}
-	
+
 
 };
 
@@ -121,7 +122,7 @@ int main()
 		printf("Failed to init GLFW.");
 		return -1;
 	}
-	
+
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
@@ -131,13 +132,13 @@ int main()
 		glfwTerminate();
 		return -1;
 	}
-	
+
 	glfwSetKeyCallback(window, keycb);
 	glfwSetCharCallback(window, charcb);
     glfwSetMouseButtonCallback(window, buttoncb);
-    
+
 	glfwMakeContextCurrent(window);
-	
+
 	vg = nvgCreateGLES3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
 	if (vg == NULL) {
 		printf("Could not init nanovg.\n");
@@ -148,40 +149,40 @@ int main()
 
 	glfwSetTime(0);
 	prevt = glfwGetTime();
-	
+
 
 	NanoUiTest uitest;
-	
+
 	if( uitest.initNanoVg( vg ) == -1 )
 	{
 		nvgDeleteGLES3(vg);
 		glfwTerminate();
 		return -1;
 	}
-	
+
 	uitest.initWidgets();
 
-	
+
 	while (!glfwWindowShouldClose(window))
 	{
 		double mx, my, t, dt;
 		int winWidth, winHeight;
 		int fbWidth, fbHeight;
 		float pxRatio;
-		
+
 		t = glfwGetTime();
 		dt = t - prevt;
 		prevt = t;
 		glfwGetCursorPos(window, &mx, &my);
 
-	
+
 		if( uitest.onFrameMove( dt, mx, my, g_btn ) == true )
 		{
 			glfwGetWindowSize(window, &winWidth, &winHeight);
 			glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
-		
+
 			uitest.draw( winWidth,winHeight);
-		
+
 			glfwSwapBuffers(window);
 		}
 

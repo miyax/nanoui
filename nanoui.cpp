@@ -40,7 +40,7 @@ namespace nanoui {
 		}
 		return 0;
 	}
-	
+
 	static char* cpToUTF8(int cp, char* str)
 	{
 		int n = 0;
@@ -61,26 +61,26 @@ namespace nanoui {
 		}
 		return str;
 	}
-	
+
 
 Widget::Widget()
 {
 	invalid = true;
 	state = stIDLE;
-	
+
 	draggable = true;
 	dragging = false;
 	//Position drag_point;
-	
+
 	margin = 4.0;
 
 }
 
 Widget::~Widget()
 {
-	
+
 }
-	
+
 void Widget::onHoverCursol( int x, int y)
 {
 	//printf("onHoverCursol (%d,%d)\n",x,y);
@@ -114,7 +114,7 @@ void Widget::onLeaveCursol()
 {
 	printf("onLeaveCursol\n");
 }
-	
+
 bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 {
 	Matrix4x4 tmtx;
@@ -125,29 +125,29 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 		if( items[i]->onButtonEvnet( sp,x,y, btnstate) == true )
 		{
 			if( !dragging )
-			{ 
+			{
 				state = stIDLE;
 			}
 			sp->matrix.pop_back();
 			return true;
 		}
 	}
-	sp->matrix.pop_back(); 
-	
+	sp->matrix.pop_back();
+
 	float lefttop_x = 0;
 	float lefttop_y = 0;
 	float rightbottom_x = size.w;
 	float rightbottom_y = size.h;
-	
+
 	tmtx.transform( lefttop_x, lefttop_y );
 	tmtx.transform( rightbottom_x, rightbottom_y );
-	
+
 	// inside region ?
 	if( x > lefttop_x && y > lefttop_y && x < rightbottom_x && y < rightbottom_y )
 	{
 		float rx = x-lefttop_x;
 		float ry = y-lefttop_y;
-		
+
 		switch(btnstate)
 		{
 		case btnOFF:
@@ -180,7 +180,7 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 				break;
 			case stON:
 				onDragMoveCursol(rx,ry);
-				
+
 				if( dragging == false && draggable )
 				{
 					dragging = true;
@@ -190,7 +190,7 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 				if( dragging )
 				{
 					this->pos.x = x-drag_point.x;
-					this->pos.y = y-drag_point.y; 
+					this->pos.y = y-drag_point.y;
 					this->matrix.loadIdentity();
 					this->matrix.translate( this->pos.x, this->pos.y , 0.0f );
 				}
@@ -198,13 +198,13 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 			}
 			break;
 		}
-		
+
 		invalid = true;
 		return invalid;
-	
-	// outside region	
+
+	// outside region
 	}else{
-		
+
 		switch(btnstate)
 		{
 		case btnOFF:
@@ -219,20 +219,20 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 				break;
 			case stON:
 				state = stIDLE;
-				onLeaveCursol();			
+				onLeaveCursol();
 				break;
 			}
 			dragging = false;
 			break;
 		case btnON:
-		
+
 			if( dragging )
 			{
 				this->pos.x = x-drag_point.x;
 				this->pos.y = y-drag_point.y;
 				this->matrix.loadIdentity();
 				this->matrix.translate( this->pos.x, this->pos.y , 0.0f );
-				invalid = true; 
+				invalid = true;
 			}else{
 				switch( state )
 				{
@@ -241,7 +241,7 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 					break;
 				case stHOVER:
 					state = stIDLE;
-					onLeaveCursol();			
+					onLeaveCursol();
 					break;
 				case stON:
 					state = stIDLE;
@@ -251,13 +251,13 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 			}
 			break;
 		}
-		
-		
+
+
 	}
-	
+
 	return invalid;
-	
-	
+
+
 }
 int Widget::connect( eEvent ev, shared_ptr<EventCallBack> cb )
 {
@@ -265,30 +265,30 @@ int Widget::connect( eEvent ev, shared_ptr<EventCallBack> cb )
 }
 
 void Widget::addWidget( shared_ptr<Widget> item )
-{ 
+{
 	items.push_back(item);
 	invalid = true;
-} 
+}
 
 void Widget::draw( Screen * sp, NVGcontext* vg )
 {
 	invalid=false;
-	
-	
 
 
-	
+
+
+
 	for( int i=0; i<items.size(); i++ )
 	{
 		items[i]->draw( sp,vg );
 	}
-	
+
 }
 
 
 Panel::Panel()
 {
-	
+
 }
 
 Panel::Panel( const char * name , const char * title, int x, int y, int width, int height )
@@ -305,38 +305,38 @@ Panel::Panel( const char * name , const char * title, int x, int y, int width, i
 
 Panel::~Panel()
 {
-	
+
 }
 
 void Panel::addWidget( shared_ptr<Widget> item )
-{ 
+{
 	item->pos.x = item->margin;
 	item->pos.y = row;
 	item->matrix.translate( item->pos.x, item->pos.y, 0.0f );
-	
-	// 
+
+	//
 	if( FIT_PARENT == item->size.w )
 	{
 		item->size.w = this->size.w - (item->margin*2);
-	}else if( WRAP_CONTENT == item->size.w ) 
+	}else if( WRAP_CONTENT == item->size.w )
 	{
 		// TODO
 		item->size.w = this->size.w - (item->margin*2);
 	}
-	 
-	// 
+
+	//
 	if( FIT_PARENT == item->size.h )
 	{
 		item->size.h = this->size.h - row - (item->margin*2);
-	}else if( WRAP_CONTENT == item->size.h ) 
+	}else if( WRAP_CONTENT == item->size.h )
 	{
 		item->size.h = 32;
-	} 
-	
+	}
+
 	row += item->size.h + margin;
 	items.push_back(item);
 	invalid = true;
-} 
+}
 
 void Panel::draw( Screen * sp, NVGcontext* vg  )
 {
@@ -344,18 +344,18 @@ void Panel::draw( Screen * sp, NVGcontext* vg  )
 	float y = 0;
 	float w = size.w;
 	float h = size.h;
-		
+
 	float cornerRadius = 3.0f;
 	NVGpaint shadowPaint;
 	NVGpaint headerPaint;
-	
+
 	nvgSave(vg);
 	float m[6];
 	matrix.getMatrix2x3( m );
-	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] ); 
+	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] );
 
 	nvgSave(vg);
-	
+
 	// Window
 	nvgBeginPath(vg);
 	nvgRoundedRect(vg, x,y, w,h, cornerRadius);
@@ -397,7 +397,7 @@ void Panel::draw( Screen * sp, NVGcontext* vg  )
 
 	nvgRestore(vg);
 	invalid=false;
-	
+
 	Widget::draw(sp,vg);
 	nvgRestore(vg);
 }
@@ -411,7 +411,7 @@ Button::Button()
 
 Button::~Button()
 {
-	
+
 }
 
 Button::Button( const char * name , const char * title, int x, int y, int width, int height  )
@@ -436,7 +436,7 @@ void Button::draw( Screen * sp, NVGcontext* vg )
 	char icon[8];
 	float cornerRadius = 4.0f;
 	float tw = 0, iw = 0;
-	
+
 	float x = 0;
 	float y = 0;
 	float w = size.w;
@@ -445,15 +445,15 @@ void Button::draw( Screen * sp, NVGcontext* vg )
 	nvgSave(vg);
 	float m[6];
 	matrix.getMatrix2x3( m );
-	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] ); 
-	
+	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] );
+
 	if( state == stON )
 	{
 		col = colActive;
 	}else{
 		col = colIdle;
 	}
-	
+
 
 	bg = nvgLinearGradient(vg, x,y,x,y+h, nvgRGBA(255,255,255,isBlack(col)?16:32), nvgRGBA(0,0,0,isBlack(col)?16:32));
 	nvgBeginPath(vg);
@@ -495,17 +495,17 @@ void Button::draw( Screen * sp, NVGcontext* vg )
 	nvgText(vg, x+w*0.5f-tw*0.5f+iw*0.25f,y+h*0.5f-1,title.c_str(), NULL);
 	nvgFillColor(vg, nvgRGBA(255,255,255,160));
 	nvgText(vg, x+w*0.5f-tw*0.5f+iw*0.25f,y+h*0.5f,title.c_str(), NULL);
-		
+
 	Widget::draw(sp,vg);
 	nvgRestore(vg);
-	
+
 }
 
 CheckButton::CheckButton()
 {
-	
+
 }
-	
+
 CheckButton::CheckButton( const char * name , const char * title, int x, int y, int width, int height  )
 {
 	draggable = false;
@@ -514,14 +514,14 @@ CheckButton::CheckButton( const char * name , const char * title, int x, int y, 
 	pos.x = x;
 	pos.y = y;
 	size.w = width;
-	size.h = height;	
+	size.h = height;
 	check_state = UnChecked;
 }
-	
+
 CheckButton::~CheckButton( )
 {
 
-	
+
 }
 
 void CheckButton::onClick()
@@ -537,25 +537,25 @@ void CheckButton::onClick()
 	}
 	invalid=true;
 }
-	
+
 void CheckButton::draw( Screen * sp, NVGcontext* vg )
 {
 	NVGpaint bg;
 	char icon[8];
 
-	
+
 	float x = 0;
 	float y = 0;
 	float w = size.w;
 	float h = size.h;
-	
+
 	NVG_NOTUSED(w);
 
 	nvgSave(vg);
 	float m[6];
 	matrix.getMatrix2x3( m );
-	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] ); 
-	
+	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] );
+
 
 	nvgFontSize(vg, 18.0f);
 	nvgFontFace(vg, "sans");
@@ -578,18 +578,18 @@ void CheckButton::draw( Screen * sp, NVGcontext* vg )
 		nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
 		nvgText(vg, x+9+2, y+h*0.5f, cpToUTF8(ICON_CHECK,icon), NULL);
 	}
-	
+
 	Widget::draw(sp,vg);
-	nvgRestore(vg);	
+	nvgRestore(vg);
 }
 
 Slider::Slider()
 {
 	draggable = false;
-	slider_pos = 0.5f;	
+	slider_pos = 0.5f;
 	margin = 8.0;
 }
-	
+
 Slider::Slider( const char * name , const char * title, int x, int y, int width, int height  )
 {
 	draggable = false;
@@ -598,14 +598,14 @@ Slider::Slider( const char * name , const char * title, int x, int y, int width,
 	pos.y = y;
 	size.w = width;
 	size.h = height;
-	slider_pos = 0.5f;	
+	slider_pos = 0.5f;
 	margin = 8.0;
 }
-	
+
 Slider::~Slider( )
 {
 
-	
+
 }
 
 void Slider::onButtonOn( int x, int y )
@@ -627,14 +627,14 @@ void Slider::draw( Screen * sp, NVGcontext* vg )
 	float y = 0;
 	float w = size.w;
 	float h = size.h;
-	
+
 	NVG_NOTUSED(w);
 
 	nvgSave(vg);
 	float m[6];
 	matrix.getMatrix2x3( m );
-	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] ); 
-	
+	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] );
+
 
 	NVGpaint bg, knob;
 	float cy = y+(int)(h*0.5f);
@@ -674,20 +674,20 @@ void Slider::draw( Screen * sp, NVGcontext* vg )
 	nvgStroke(vg);
 
 	nvgRestore(vg);
-	
+
 	Widget::draw(sp,vg);
-	nvgRestore(vg);	
+	nvgRestore(vg);
 }
 
 Editbox::Editbox()
 {
-	
-} 
+
+}
 
 Editbox::~Editbox()
 {
-	
-} 
+
+}
 
 Editbox::Editbox( const char * name , const char * text, int x, int y, int width, int height  )
 {
@@ -703,7 +703,7 @@ Editbox::Editbox( const char * name , const char * text, int x, int y, int width
 void Editbox::draw( Screen * sp, NVGcontext* vg )
 {
 	NVGpaint bg;
-	
+
 	float x = 0;
 	float y = 0;
 	float w = size.w;
@@ -712,7 +712,7 @@ void Editbox::draw( Screen * sp, NVGcontext* vg )
 	nvgSave(vg);
 	float m[6];
 	matrix.getMatrix2x3( m );
-	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] ); 
+	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] );
 
 	bg = nvgBoxGradient(vg, x+1,y+1+1.5f, w-2,h-2, 3,4, nvgRGBA(255,255,255,32), nvgRGBA(32,32,32,32));
 	nvgBeginPath(vg);
@@ -723,27 +723,71 @@ void Editbox::draw( Screen * sp, NVGcontext* vg )
 	nvgBeginPath(vg);
 	nvgRoundedRect(vg, x+0.5f,y+0.5f, w-1,h-1, 4-0.5f);
 	nvgStrokeColor(vg, nvgRGBA(0,0,0,48));
-	nvgStroke(vg);	
-	
+	nvgStroke(vg);
+
 	nvgFontSize(vg, 20.0f);
 	nvgFontFace(vg, "sans");
 	nvgFillColor(vg, nvgRGBA(255,255,255,64));
 	nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
 	nvgText(vg, x+h*0.3f,y+h*0.5f,text.c_str(), NULL);
-	
-	
+
+
 	Widget::draw(sp,vg);
-	nvgRestore(vg);	
+	nvgRestore(vg);
+}
+
+Label::Label()
+{
+
+}
+
+Label::~Label()
+{
+
+}
+
+Label::Label( const char * name , const char * text, int x, int y, int width, int height  )
+{
+	draggable = false;
+	this->name = name;
+	this->text = text;
+	pos.x = x;
+	pos.y = y;
+	size.w = width;
+	size.h = height;
+}
+
+void Label::draw( Screen * sp, NVGcontext* vg )
+{
+	float x = 0;
+	float y = 0;
+	float w = size.w;
+	float h = size.h;
+
+	nvgSave(vg);
+	float m[6];
+	matrix.getMatrix2x3( m );
+	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] );
+
+	nvgFontSize(vg, 18.0f);
+	nvgFontFace(vg, "sans");
+	nvgFillColor(vg, nvgRGBA(255,255,255,128));
+
+	nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
+	nvgText(vg, x,y+h*0.5f,text.c_str(), NULL);
+
+	Widget::draw(sp,vg);
+	nvgRestore(vg);
 }
 
 Screen::Screen()
 {
-	
+
 }
 
 Screen::~Screen()
 {
-	
+
 }
 
 int Screen::initNanoVg( NVGcontext* vg )
@@ -781,7 +825,7 @@ bool Screen::onFrameMove( int time, int cx, int cy, eBtnState btn )
 	}
 	return invalid;
 }
-	
+
 int Screen::draw( int width, int height )
 {
 
@@ -794,24 +838,23 @@ int Screen::draw( int width, int height )
 	glBlendFunc(GL_SRC_ALPHA, GL_ONE_MINUS_SRC_ALPHA);
 	glEnable(GL_CULL_FACE);
 	glDisable(GL_DEPTH_TEST);
-		
+
 	nvgBeginFrame(vg, width, height, 1.0);
-	
+
 	Matrix4x4 tmx;
 	matrix.clear();
 	matrix.push_back( tmx );
-		
+
 	for( int i=0; i<items.size(); i++ )
 	{
 		items[i]->draw(this,vg);
 	}
-		
+
 	nvgEndFrame(vg);
 	glEnable(GL_DEPTH_TEST);
-				
+
 	return 0;
-		
+
 }
 
 }
-	

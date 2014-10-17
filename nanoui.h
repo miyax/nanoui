@@ -87,7 +87,7 @@ class Screen;
 
 struct  EventCallBack {
    virtual void operator()(Widget * p) {
-        
+
    }
 };
 
@@ -97,13 +97,13 @@ class Widget
 protected:
 	string name;
 	vecWidget items;
-	
+
 	NVGcontext* vg;
-	
+
 	bool invalid;
-	
+
 	eWidgetState state;
-	
+
 	// CursolEvent
 	virtual void onHoverCursol( int x, int y);
 	virtual void onHoverMoveCursol( int x, int y);
@@ -111,15 +111,15 @@ protected:
 	virtual void onButtonOn( int x, int y );
 	virtual void onDragMoveCursol( int x, int y );
 	virtual void onLeaveCursol();
-	
+
 	bool draggable;
 	bool dragging;
 	Position drag_point;
-	
+
 	shared_ptr<EventCallBack> cbks[WE_MAX];
 
 
-public:	
+public:
 	Position pos;
 	Size size;
 	Matrix4x4 matrix;
@@ -140,7 +140,7 @@ class Panel : public Widget
 protected:
 	string title;
 	int row;
-	
+
 public:
 	Panel();
 	Panel( const char * name , const char * title, int x, int y, int width, int height  );
@@ -157,7 +157,7 @@ protected:
 	int preicon;
 	NVGcolor colIdle;
 	NVGcolor colActive;
-	
+
 public:
 	Button();
 	Button( const char * name , const char * title, int x, int y, int width, int height  );
@@ -180,9 +180,9 @@ protected:
 	string title;
 	eCheckState check_state;
 public:
-	
+
 	eCheckState getCheckState(){ return check_state; }
-	
+
 	CheckButton();
 	CheckButton( const char * name , const char * title, int x, int y, int width, int height  );
 	virtual ~CheckButton( );
@@ -206,7 +206,7 @@ public:
 	void setMinMax( float min, float max ){ this->min = min; this->max = max; }
 	virtual ~Slider( );
 	virtual void draw( Screen * sp, NVGcontext* vg );
-	
+
 	virtual void onButtonOn( int x, int y );
 	virtual void onDragMoveCursol( int x, int y );
 };
@@ -216,10 +216,10 @@ public:
 class Editbox : public Widget
 {
 public:
-	
+
 protected:
 	string text;
-	
+
 public:
 	Editbox();
 	Editbox( const char * name , const char * text, int x, int y, int width, int height  );
@@ -227,6 +227,20 @@ public:
 	virtual void draw( Screen * sp, NVGcontext* vg );
 };
 
+//----------------------------------------------------------------------
+class Label : public Widget
+{
+public:
+
+protected:
+	string text;
+
+public:
+	Label();
+	Label( const char * name , const char * text, int x, int y, int width, int height  );
+	virtual ~Label( );
+	virtual void draw( Screen * sp, NVGcontext* vg );
+};
 
 typedef deque<Matrix4x4> queMatrix;
 
@@ -235,14 +249,14 @@ class Screen : public Widget
 {
 protected:
 	NVGcontext* vg;
-	int fontNormal, fontBold, fontIcons; 
-	
+	int fontNormal, fontBold, fontIcons;
+
 public:
 	queMatrix matrix;
-	
+
 public:
 	Screen();
-	virtual ~Screen();	
+	virtual ~Screen();
 	int initNanoVg( NVGcontext* vg );
 	bool onFrameMove( int time, int cx, int cy, eBtnState btn );
 	int draw( int width, int height );
