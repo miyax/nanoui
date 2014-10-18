@@ -39,6 +39,11 @@ namespace nanoui {
 
 #include "nanoui_matrix.h"
 
+class Widget;
+typedef vector<shared_ptr<Widget>> vecWidget;
+class Screen;
+
+
 struct Position
 {
 	float x;
@@ -57,6 +62,27 @@ struct Rect
 	Size size;
 };
 
+struct vec2
+{
+	float x;
+	float y;
+};
+
+struct vec3
+{
+	float x;
+	float y;
+	float z;
+};
+
+struct vec4
+{
+	float x;
+	float y;
+	float z;
+	float w;
+};
+
 
 
 enum eBtnState
@@ -72,23 +98,38 @@ enum eWidgetState
 	stON
 };
 
-enum eEvent
-{
-	WE_ON_CLICK =0,
-	WE_MAX
-};
-
 const int FIT_PARENT = -1;
 const int WRAP_CONTENT = -2;
 
-class Widget;
-typedef vector<shared_ptr<Widget>> vecWidget;
-class Screen;
+//-------------------------------------------------------------
+enum eEvent
+{
+	WE_ON_HOVER_CURSOL,
+	WE_ON_HOVER_MOVE_CURSOL,
+	WE_ON_BUTTON_ON,
+	WE_ON_CLICK,
+	WE_ON_DRAG_MOVE_CURSOL,
+	WE_ON_LEAVE_CURSOL,
+	WE_MAX
+};
+
+struct UiEvent
+{
+		virtual ~UiEvent() {};
+		eEvent ev;
+		Widget * pObj;
+};
+
+struct UiEventXY : public UiEvent
+{
+		int x;
+		int y;
+};
 
 struct  EventCallBack {
-   virtual void operator()(Widget * p) {
+	virtual void operator()( UiEvent * p) {
 
-   }
+	}
 };
 
 //----------------------------------------------------------------------
@@ -120,18 +161,21 @@ protected:
 
 
 public:
+	Widget * parent;
 	Position pos;
 	Size size;
 	Matrix4x4 matrix;
 	float margin;
 
-
 	Widget();
 	virtual ~Widget();
 	virtual void addWidget( shared_ptr<Widget> item );
+	virtual bool onFrameMove( Screen * sp, int time );
+	virtual void draw( Screen * sp, NVGcontext* vg );
+
 	int connect( eEvent ev, shared_ptr<EventCallBack>  cb );
 	bool onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate );
-	virtual void draw( Screen * sp, NVGcontext* vg );
+
 };
 
 //----------------------------------------------------------------------
@@ -244,12 +288,15 @@ public:
 
 typedef deque<Matrix4x4> queMatrix;
 
+typedef deque<UiEvent> queEvent;
+
 //----------------------------------------------------------------------
 class Screen : public Widget
 {
 protected:
 	NVGcontext* vg;
 	int fontNormal, fontBold, fontIcons;
+
 
 public:
 	queMatrix matrix;
@@ -260,6 +307,17 @@ public:
 	int initNanoVg( NVGcontext* vg );
 	bool onFrameMove( int time, int cx, int cy, eBtnState btn );
 	int draw( int width, int height );
+	bool isInvalid(){ return invalid; };
+	void addInvalidRect( Rect & rect );
+
+/* Event Operation is it nesseray???
+	queEvent events;
+	void procEvent();
+
+	int postEvent( const UiEvent & ev );
+	virtual int handleEvent( const UiEvent & ev );
+*/
+
 };
 
 }

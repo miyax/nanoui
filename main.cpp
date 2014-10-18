@@ -68,11 +68,23 @@ public:
 
 	}
 
+	struct OnButtonXYcbk : public EventCallBack
+	{
+		virtual void  operator()(UiEvent * p )
+		{
+			UiEventXY * pxy = dynamic_cast<UiEventXY *>(p);
+			if(pxy)
+			{
+					printf("OnButtonXY!! (%d,%d)\n", pxy->x, pxy->y );
+			}
+		}
+	};
+
 	struct OnClickbck : public EventCallBack
 	{
-		virtual void  operator()(Widget * p )
+		virtual void  operator()(UiEvent * p )
 		{
-			printf("hit!!");
+				printf("OnClickbck!!");
 		}
 	};
 
@@ -91,8 +103,10 @@ public:
 			btn2->connect( WE_ON_CLICK, fp );
 			p->addWidget(btn2);
 
+			shared_ptr<OnButtonXYcbk> fpxy(new OnButtonXYcbk());
+
 			shared_ptr<CheckButton> btn3(new CheckButton( "btn3","CheckBoxTest", 0,0, FIT_PARENT,WRAP_CONTENT ));
-			btn3->connect( WE_ON_CLICK, fp );
+			btn3->connect( WE_ON_BUTTON_ON, fpxy );
 			p->addWidget(btn3);
 
 			shared_ptr<Slider> btn4(new Slider( "btn3","Slider", 0,0, FIT_PARENT,WRAP_CONTENT ));
@@ -104,7 +118,11 @@ public:
 			shared_ptr<Label> lb(new Label( "llbb","AbCdEfG", 0,0, FIT_PARENT,WRAP_CONTENT ));
 			p->addWidget(lb);
 
-
+/*
+			AnimationTranslate pat = new AnimationTranslate( trigger, startval, endval, duration );
+			pat->setRepeat(0);
+			pat->setOverrride(true);
+*/
 		addWidget(p);
 		return 0;
 	}
@@ -175,9 +193,9 @@ int main()
 		prevt = t;
 		glfwGetCursorPos(window, &mx, &my);
 
+		uitest.onFrameMove( dt, mx, my, g_btn );
 
-		if( uitest.onFrameMove( dt, mx, my, g_btn ) == true )
-		{
+		if(uitest.isInvalid()){
 			glfwGetWindowSize(window, &winWidth, &winHeight);
 			glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
 

@@ -83,36 +83,90 @@ Widget::~Widget()
 
 void Widget::onHoverCursol( int x, int y)
 {
-	//printf("onHoverCursol (%d,%d)\n",x,y);
+	if( cbks[WE_ON_HOVER_CURSOL] != NULL )
+	{
+		UiEventXY ev;
+		ev.ev = WE_ON_CLICK;
+		ev.pObj = this;
+		ev.x = x;
+		ev.y = y;
+
+		(*cbks[WE_ON_HOVER_CURSOL])(&ev);
+	}
 }
 
 void Widget::onHoverMoveCursol( int x, int y)
 {
-	//printf("onHoverMoveCursol (%d,%d)\n",x,y);
+	if( cbks[WE_ON_HOVER_MOVE_CURSOL] != NULL )
+	{
+		UiEventXY ev;
+		ev.ev = WE_ON_CLICK;
+		ev.pObj = this;
+		ev.x = x;
+		ev.y = y;
+		(*cbks[WE_ON_HOVER_MOVE_CURSOL])(&ev);
+	}
 }
 
 void Widget::onClick()
 {
+	UiEvent ev;
+	ev.ev = WE_ON_CLICK;
+	ev.pObj = this;
 	if( cbks[WE_ON_CLICK] != NULL )
 	{
-		(*cbks[WE_ON_CLICK])(this);
+		(*cbks[WE_ON_CLICK])(&ev);
 	}
-	printf("%s onClick\n", name.c_str());
+	//printf("%s onClick\n", name.c_str());
 }
 
 void Widget::onButtonOn( int x, int y )
 {
-	printf("onButtonOn\n");
+	if( cbks[WE_ON_BUTTON_ON] != NULL )
+	{
+		UiEventXY ev;
+		ev.ev = WE_ON_CLICK;
+		ev.pObj = this;
+		ev.x = x;
+		ev.y = y;
+
+		(*cbks[WE_ON_BUTTON_ON])(&ev);
+	}
+	//printf("onButtonOn\n");
 }
 
 void Widget::onDragMoveCursol( int x, int y )
 {
+	if( cbks[WE_ON_DRAG_MOVE_CURSOL] != NULL )
+	{
+		UiEventXY ev;
+		ev.ev = WE_ON_CLICK;
+		ev.pObj = this;
+		ev.x = x;
+		ev.y = y;
+		(*cbks[WE_ON_DRAG_MOVE_CURSOL])(&ev);
+	}
 	//printf("onDragMoveCursol\n");
 }
 
 void Widget::onLeaveCursol()
 {
-	printf("onLeaveCursol\n");
+	if( cbks[WE_ON_LEAVE_CURSOL] != NULL )
+	{
+		UiEvent ev;
+		ev.ev = WE_ON_CLICK;
+		ev.pObj = this;
+		(*cbks[WE_ON_LEAVE_CURSOL])(&ev);
+	}
+}
+
+bool Widget::onFrameMove( Screen * sp, int time )
+{
+	for( int i=0; i<items.size(); i++ )
+	{
+		items[i]->onFrameMove( sp,time);
+	}
+	return false;
 }
 
 bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
@@ -266,6 +320,7 @@ int Widget::connect( eEvent ev, shared_ptr<EventCallBack> cb )
 
 void Widget::addWidget( shared_ptr<Widget> item )
 {
+	item->parent = this;
 	items.push_back(item);
 	invalid = true;
 }
@@ -273,10 +328,6 @@ void Widget::addWidget( shared_ptr<Widget> item )
 void Widget::draw( Screen * sp, NVGcontext* vg )
 {
 	invalid=false;
-
-
-
-
 
 	for( int i=0; i<items.size(); i++ )
 	{
@@ -334,8 +385,8 @@ void Panel::addWidget( shared_ptr<Widget> item )
 	}
 
 	row += item->size.h + margin;
-	items.push_back(item);
-	invalid = true;
+
+	Widget::addWidget( item );
 }
 
 void Panel::draw( Screen * sp, NVGcontext* vg  )
@@ -816,13 +867,24 @@ bool Screen::onFrameMove( int time, int cx, int cy, eBtnState btn )
 	Matrix4x4 tmx;
 	matrix.clear();
 	matrix.push_back( tmx );
+
+	// 時間による処理
+	Widget::onFrameMove(this,time);
+
+	// ボタンイベントによる処理受け取ったところでガード
 	for( int i=0; i<items.size(); i++ )
 	{
 		if( items[i]->onButtonEvnet( this, cx,cy, btn) == true )
 		{
+			if( invalid == false )
+			{
+					invalid = true;
+			}
 			return true;
 		}
 	}
+
+
 	return invalid;
 }
 
@@ -853,8 +915,9 @@ int Screen::draw( int width, int height )
 	nvgEndFrame(vg);
 	glEnable(GL_DEPTH_TEST);
 
-	return 0;
+	invalid = false;
 
+	return 0;
 }
 
 }
