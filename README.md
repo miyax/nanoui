@@ -2,10 +2,12 @@
 
 nanoui is an vector graphical user interface library written in C++, based on [NanoVG](https://github.com/memononen/nanovg).
 
+![screenshot of some text rendered witht the sample program](/doc/screenshot/01.png?raw=true)
+
 ## Project Goals
 
-The goal os the nanoui is to provide the simplest and fastest vector graphical user interface library.
-   
+The goal of the nanoui is to provide the simplest and fastest vector graphical user interface library.
+
 ## Status
 
 on very early stage.
