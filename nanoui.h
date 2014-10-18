@@ -288,8 +288,6 @@ public:
 
 typedef deque<Matrix4x4> queMatrix;
 
-typedef deque<UiEvent> queEvent;
-
 //----------------------------------------------------------------------
 class Screen : public Widget
 {
@@ -311,6 +309,7 @@ public:
 	void addInvalidRect( Rect & rect );
 
 /* Event Operation is it nesseray???
+	typedef deque<UiEvent> queEvent;
 	queEvent events;
 	void procEvent();
 
@@ -320,6 +319,6 @@ public:
 
 };
 
-}
+} // namespace nanoui
 
 #endif // _NANOUI_H_

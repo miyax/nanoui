@@ -136,41 +136,40 @@ int main()
 	NVGcontext* vg = NULL;
 	double prevt = 0;
 
+	// Setup OpenGL
 	if (!glfwInit()) {
 		printf("Failed to init GLFW.");
 		return -1;
 	}
-
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-
 	window = glfwCreateWindow(1000, 600, "NanoUI Test", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
 		return -1;
 	}
 
+	// set up callbacks
 	glfwSetKeyCallback(window, keycb);
 	glfwSetCharCallback(window, charcb);
-    glfwSetMouseButtonCallback(window, buttoncb);
+  glfwSetMouseButtonCallback(window, buttoncb);
 
+	// set up opengl
 	glfwMakeContextCurrent(window);
+	glfwSwapInterval(0);
 
+	// create nanovg objects
 	vg = nvgCreateGLES3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
 	if (vg == NULL) {
 		printf("Could not init nanovg.\n");
 		return -1;
 	}
 
-	glfwSwapInterval(0);
-
-	glfwSetTime(0);
-	prevt = glfwGetTime();
-
-
+	// create nanoui
 	NanoUiTest uitest;
 
+	// initialize nanoui using nanovg
 	if( uitest.initNanoVg( vg ) == -1 )
 	{
 		nvgDeleteGLES3(vg);
@@ -178,9 +177,11 @@ int main()
 		return -1;
 	}
 
+	// setup widgets
 	uitest.initWidgets();
 
-
+	glfwSetTime(0);
+	prevt = glfwGetTime();
 	while (!glfwWindowShouldClose(window))
 	{
 		double mx, my, t, dt;
@@ -192,16 +193,21 @@ int main()
 		dt = t - prevt;
 		prevt = t;
 		glfwGetCursorPos(window, &mx, &my);
+		glfwGetWindowSize(window, &winWidth, &winHeight);
+		glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
 
+		// update frame infomation
 		uitest.onFrameMove( dt, mx, my, g_btn );
 
+		// need to draw??
 		if(uitest.isInvalid()){
-			glfwGetWindowSize(window, &winWidth, &winHeight);
-			glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
 
+			// draw
 			uitest.draw( winWidth,winHeight);
 
+			// show draw bufer
 			glfwSwapBuffers(window);
+
 		}
 
 		glfwPollEvents();

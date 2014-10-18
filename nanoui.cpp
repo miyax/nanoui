@@ -920,4 +920,4 @@ int Screen::draw( int width, int height )
 	return 0;
 }
 
-}
+} // namespace nanoui
