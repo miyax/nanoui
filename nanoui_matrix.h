@@ -24,6 +24,12 @@ THE SOFTWARE.
 #define NANOUI_MATRIX4X4
 
 #include <memory.h>
+#include <math.h>
+
+
+inline float DEG2RAD( float a ){ return a * M_PI/180.0f; }
+inline float RAD2DEG( float a ){ return a * 180.0f / M_PI; }
+
 
 class Matrix4x4
 {
@@ -34,14 +40,14 @@ public:
 	{
 		loadIdentity();
 	}
-	
+
 	void loadIdentity()
 	{
 		m[0] = 1.0f;
 		m[1] = 0.0f;
 		m[2] = 0.0f;
 		m[3] = 0.0f;
-		
+
 		m[4] = 0.0f;
 		m[5] = 1.0f;
 		m[6] = 0.0f;
@@ -56,53 +62,78 @@ public:
 		m[13] = 0.0f;
 		m[14] = 0.0f;
 		m[15] = 1.0f;
-		
+
 	}
-	
-	
+
+
 	inline float get( int row, int col ){ return m[row*4+col]; }
 	void operator = (  const Matrix4x4 & rhs ) { memcpy( this->m, rhs.m, sizeof(float) * 16); };
 	float operator [] ( int index ) { return m[index]; }
 	Matrix4x4 operator * (  const Matrix4x4 & rhs ) { return multiply(rhs); }
-	
+
 	void translate( float x, float y, float z )
 	{
 		Matrix4x4 t;
-		t.m[12] = x; 
-		t.m[13] = y; 
-		t.m[14] = z;
+		t.m[0+3*4] = x;
+		t.m[1+3*4] = y;
+		t.m[2+3*4] = z;
 		*this = *this * t;
 	}
-	
-	void rotate( float x, float y, float z, float dir );
-	void scale( float x, float y, float z );
+
+	void rotateZ( float dir )
+	{
+
+		float a = DEG2RAD(dir);
+		float cs = cosf(a);
+		float sn = sinf(a);
+		Matrix4x4 t;
+
+		t.m[0] = cs;
+		t.m[1] = sn;
+		t.m[4] = -sn;
+		t.m[5] = cs;
+		*this = *this * t;
+
+	}
+
+
+	void scale( float x, float y, float z )
+	{
+		Matrix4x4 t;
+		t.m[0] = x;
+		t.m[5] = y;
+		t.m[10] = z;
+		*this = *this * t;
+	}
+
 	Matrix4x4 multiply( const Matrix4x4 & mtx )
 	{
 		Matrix4x4 ret;
+		ret.m[0] = 0.0f;
+		ret.m[5] = 0.0f;
+		ret.m[10] = 0.0f;
+		ret.m[15] = 0.0f;
+
 		const int n = 4;
-		for (int i = 0; i < n; i++)
-		{
-			for (int j = 0; j < n; j++) 
-			{
-				ret.m[i + j*n] = 0;
-				for ( int k = 0; k < n; k++)
-				{
-					ret.m[i + j*n] += m[i + k*n]*mtx.m[k + n*j];
+		for (int i = 0; i < n; i++){
+			for (int j = 0; j < n; j++){
+				for ( int k = 0; k < n; k++){
+					ret.m[i + j*n] += m[i + k*n]*mtx.m[k + j*n];
 				}
 			}
 		}
-		return ret;		
+		return ret;
 	}
 	Matrix4x4 inverse( Matrix4x4 & mtx );
-	
+
 	void transform( float & x, float & y )
 	{
 		float dx = x*m[0] + y*m[4] + m[8] + m[12];
-		float dy = x*m[1] + y*m[5] + m[9] + m[13];	
+		float dy = x*m[1] + y*m[5] + m[9] + m[13];
 		x = dx;
-		y = dy;	
+		y = dy;
 	}
-	
+
 	// The parameters are interpreted as matrix as follows:
 	//   [a c e]
 	//   [b d f]
@@ -115,7 +146,7 @@ public:
 		p[3] = m[5];
 		p[4] = m[12];
 		p[5] = m[13];
-		
+
 	}
 };
 

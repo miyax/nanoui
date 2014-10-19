@@ -59,6 +59,76 @@ static void buttoncb(GLFWwindow* window, int button, int action, int mods)
 	}
 }
 
+class AnimateButton : public Button
+{
+protected:
+	float scale;
+	bool running;
+	bool repeat;
+	int atime;
+public:
+	AnimateButton( const char * name , const char * title, int x, int y, int width, int height  )
+	{
+		scale = 1.0f;
+		repeat = true;
+		this->name = name;
+		this->title = title;
+		pos.x = x;
+		pos.y = y;
+		size.w = width;
+		size.h = height;
+		running = false;
+		atime=-1;
+	}
+
+	virtual bool onFrameMove( Screen * sp, int time )
+	{
+			Matrix4x4 mtx;
+
+			if( running == false )
+			{
+					return true;
+			}
+
+			if( atime == -1 )
+			{
+						atime=time;
+			}
+
+			float t = (float)((time-atime)%1000)/1000.0f;
+			scale = 1.0f + (sin(t*M_PI*2.0)+1.0f)*0.10;
+
+			//printf("time:%d,%f\n",time,scale);
+
+			mtx.translate( ((size.w/2)),((size.h/2)) , 0.0f );
+			mtx.scale( scale, scale, 1.0f );
+			mtx.translate( -((size.w/2)),-((size.h/2)) , 0.0f );
+			this->animetion_mtx = mtx;
+
+			if( scale == 1.0f && repeat == false )
+			{
+				running = false;
+			}
+
+			return true;
+	}
+
+	virtual void onHoverCursol( int x, int y)
+	{
+		running = true;
+		repeat = true;
+		atime = -1;
+		Button::onHoverCursol(x,y);
+	}
+
+	virtual void onLeaveCursol()
+	{
+		repeat = false;
+		Button::onLeaveCursol();
+	}
+
+};
+
 class NanoUiTest : public Screen
 {
 
@@ -99,7 +169,7 @@ public:
 			btn1->connect( WE_ON_CLICK, fp );
 			p->addWidget(btn1);
 
-			shared_ptr<Button> btn2(new Button( "btn2","OK2", 0,0, FIT_PARENT,WRAP_CONTENT ));
+			shared_ptr<AnimateButton> btn2(new AnimateButton( "btn2","OK2", 0,0, FIT_PARENT,WRAP_CONTENT ));
 			btn2->connect( WE_ON_CLICK, fp );
 			p->addWidget(btn2);
 
@@ -122,6 +192,9 @@ public:
 			AnimationTranslate pat = new AnimationTranslate( trigger, startval, endval, duration );
 			pat->setRepeat(0);
 			pat->setOverrride(true);
+
+			AnimationScale pat = new AnimationScale( trigger, startval, endval, duration );
+
 */
 		addWidget(p);
 		return 0;
@@ -129,6 +202,23 @@ public:
 
 
 };
+
+
+int getClock_ms()
+{
+	int u4SysTime = 0;				/* システム時間[msec] */
+	struct timespec sClockTime;		/* 経過起動時間 */
+
+	memset( &sClockTime, 0x00, sizeof(struct timespec) );
+
+	/* 経過起動時間を取得(成功した場合) */
+	if( 0 == clock_gettime( CLOCK_MONOTONIC, &sClockTime ) ) {
+		/* [秒→ミリ秒] + [ナノ秒→ミリ秒] */
+		u4SysTime = (sClockTime.tv_sec * 1000)
+					+ (sClockTime.tv_nsec / 1000000);
+	}
+	return u4SysTime;
+}
 
 int main()
 {
@@ -181,7 +271,7 @@ int main()
 	uitest.initWidgets();
 
 	glfwSetTime(0);
-	prevt = glfwGetTime();
+	prevt = getClock_ms();
 	while (!glfwWindowShouldClose(window))
 	{
 		double mx, my, t, dt;
@@ -189,9 +279,9 @@ int main()
 		int fbWidth, fbHeight;
 		float pxRatio;
 
-		t = glfwGetTime();
+		t = getClock_ms();
 		dt = t - prevt;
-		prevt = t;
+		//prevt = t;
 		glfwGetCursorPos(window, &mx, &my);
 		glfwGetWindowSize(window, &winWidth, &winHeight);
 		glfwGetFramebufferSize(window, &fbWidth, &fbHeight);

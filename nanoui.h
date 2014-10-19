@@ -165,6 +165,7 @@ public:
 	Position pos;
 	Size size;
 	Matrix4x4 matrix;
+	Matrix4x4 animetion_mtx;
 	float margin;
 
 	Widget();
@@ -225,6 +226,7 @@ protected:
 public:
 	Button();
 	Button( const char * name , const char * title, int x, int y, int width, int height  );
+	void initBase();
 	virtual ~Button( );
 	virtual void draw( Screen * sp, NVGcontext* vg );
 

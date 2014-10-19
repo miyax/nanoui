@@ -462,11 +462,17 @@ void Panel::draw( Screen * sp, NVGcontext* vg  )
 	nvgRestore(vg);
 }
 
-Button::Button()
+void Button::initBase()
 {
 	draggable = false;
 	preicon=0;
+	colIdle = nvgRGBA(0,96,128,255);
+	colActive = nvgRGBA(0,96*2,255,255);
+}
 
+Button::Button()
+{
+	initBase();
 }
 
 Button::~Button()
@@ -476,17 +482,13 @@ Button::~Button()
 
 Button::Button( const char * name , const char * title, int x, int y, int width, int height  )
 {
-	draggable = false;
-	preicon=0;
-	colIdle = nvgRGBA(0,96,128,255);
-	colActive = nvgRGBA(0,96*2,255,255);
+	initBase();
 	this->name = name;
 	this->title = title;
 	pos.x = x;
 	pos.y = y;
 	size.w = width;
 	size.h = height;
-
 }
 
 void Button::draw( Screen * sp, NVGcontext* vg )
@@ -502,9 +504,12 @@ void Button::draw( Screen * sp, NVGcontext* vg )
 	float w = size.w;
 	float h = size.h;
 
+	Matrix4x4 tmtx;
 	nvgSave(vg);
 	float m[6];
-	matrix.getMatrix2x3( m );
+
+	tmtx = matrix * animetion_mtx;
+	tmtx.getMatrix2x3( m );
 	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] );
 
 	if( state == stON )
