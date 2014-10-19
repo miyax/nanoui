@@ -21,14 +21,20 @@ THE SOFTWARE.
 */
 
 #include <stdio.h>
-#define GLFW_INCLUDE_ES3
+#if defined(NANOVG_GLEW)
+#define GLEW_STATIC
+#include <GL/glew.h>
+#define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
+#endif
+
 #include "nanovg.h"
-#define NANOVG_GLES3_IMPLEMENTATION
 #include "nanovg_gl.h"
 #include "nanovg_gl_utils.h"
 
 #include "nanoui.h"
+
+#include <time.h>
 
 using namespace nanoui;
 
@@ -206,6 +212,9 @@ public:
 
 int getClock_ms()
 {
+#if defined(WIN32)
+	return clock();
+#else
 	int u4SysTime = 0;				/* システム時間[msec] */
 	struct timespec sClockTime;		/* 経過起動時間 */
 
@@ -218,6 +227,7 @@ int getClock_ms()
 					+ (sClockTime.tv_nsec / 1000000);
 	}
 	return u4SysTime;
+#endif
 }
 
 int main()
@@ -231,9 +241,11 @@ int main()
 		printf("Failed to init GLFW.");
 		return -1;
 	}
+#if defined(NANOVG_GLES3_IMPLEMENTATION)
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+#endif	
 	window = glfwCreateWindow(1000, 600, "NanoUI Test", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
@@ -249,8 +261,22 @@ int main()
 	glfwMakeContextCurrent(window);
 	glfwSwapInterval(0);
 
+#ifdef NANOVG_GLEW
+	glewExperimental = GL_TRUE;
+	if (glewInit() != GLEW_OK) {
+		printf("Could not init glew.\n");
+		return -1;
+	}
+	// GLEW generates GL error because it calls glGetString(GL_EXTENSIONS), we'll consume it here.
+	glGetError();
+#endif
+
 	// create nanovg objects
+#if defined(NANOVG_GL3_IMPLEMENTATION)
+	vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+#elif defined(NANOVG_GLES3_IMPLEMENTATION)
 	vg = nvgCreateGLES3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
+#endif
 	if (vg == NULL) {
 		printf("Could not init nanovg.\n");
 		return -1;
@@ -262,9 +288,7 @@ int main()
 	// initialize nanoui using nanovg
 	if( uitest.initNanoVg( vg ) == -1 )
 	{
-		nvgDeleteGLES3(vg);
-		glfwTerminate();
-		return -1;
+		goto CLEANUP;
 	}
 
 	// setup widgets
@@ -303,7 +327,12 @@ int main()
 		glfwPollEvents();
 	}
 
+CLEANUP:
+#if defined(NANOVG_GL3_IMPLEMENTATION)
+	nvgDeleteGL3(vg);
+#elif defined(NANOVG_GLES3_IMPLEMENTATION)
 	nvgDeleteGLES3(vg);
+#endif
 	glfwTerminate();
 
 	return 0;
