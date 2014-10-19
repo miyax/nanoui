@@ -1,6 +1,6 @@
 # nanoui
 
-nanoui is an vector graphical user interface library written in C++, based on [NanoVG](https://github.com/memononen/nanovg).
+nanoui is a vector graphical user interface library written in C++, based on [NanoVG](https://github.com/memononen/nanovg).
 
 ![screenshot of some text rendered witht the sample program](/doc/screenshot/01.png?raw=true)
 ![screenshot of some text rendered witht the sample program](/doc/screenshot/nano.gif?raw=true)
