@@ -361,30 +361,39 @@ Panel::~Panel()
 
 void Panel::addWidget( shared_ptr<Widget> item )
 {
-	item->pos.x = item->margin;
-	item->pos.y = row;
-	item->matrix.translate( item->pos.x, item->pos.y, 0.0f );
+	float x;
+	float y;
+	float w;
+	float h;
+
+	item->getPosAndSize( x, y, w, h );
+
+	x = item->getMargin();
+	y = row;
 
 	//
-	if( FIT_PARENT == item->size.w )
+	if( FIT_PARENT == w )
 	{
-		item->size.w = this->size.w - (item->margin*2);
-	}else if( WRAP_CONTENT == item->size.w )
+		w = this->size.w - (item->getMargin()*2);
+	}else if( WRAP_CONTENT == w )
 	{
 		// TODO
-		item->size.w = this->size.w - (item->margin*2);
+		w = this->size.w - (item->getMargin()*2);
 	}
 
 	//
-	if( FIT_PARENT == item->size.h )
+	if( FIT_PARENT == h )
 	{
-		item->size.h = this->size.h - row - (item->margin*2);
+		h = this->size.h - row - (item->getMargin()*2);
 	}else if( WRAP_CONTENT == item->size.h )
 	{
-		item->size.h = 32;
+		h = 32;
 	}
 
-	row += item->size.h + margin;
+	row += h + margin;
+
+	item->setPosAndSize( x, y, w, h );
+
 
 	Widget::addWidget( item );
 }
@@ -639,10 +648,13 @@ Slider::Slider()
 	draggable = false;
 	slider_pos = 0.5f;
 	margin = 8.0;
+	width_rate = 0.60f;
 }
 
 Slider::Slider( const char * name , const char * title, int x, int y, int width, int height  )
 {
+	max = 1.0f;
+	min = 0.0f;
 	draggable = false;
 	this->name = name;
 	pos.x = x;
@@ -651,6 +663,9 @@ Slider::Slider( const char * name , const char * title, int x, int y, int width,
 	size.h = height;
 	slider_pos = 0.5f;
 	margin = 8.0;
+	width_rate = 0.60f;
+	shared_ptr<EditboxNum> p(new EditboxNum("",slider_pos,"%5.2f","px",x,y,width,height));
+	num = p;
 }
 
 Slider::~Slider( )
@@ -659,15 +674,44 @@ Slider::~Slider( )
 
 }
 
+void Slider::getPosAndSize( float & x, float & y, float & w, float & h )
+{
+	x = pos.x;
+	y = pos.y;
+	w = size.w;
+	h = size.h;
+	if(w > 0)
+	{
+		w *= 2;
+	}
+}
+
+void Slider::setPosAndSize( float x, float y, float w, float h )
+{
+		pos.x = x;
+		pos.y = y;
+		size.w = w*width_rate;
+		size.h = h;
+		matrix.translate( pos.x, pos.y, 0.0f );
+		if( num )
+		{
+				num->setPosAndSize( x + w*width_rate + margin , y,  w*(1.0f-width_rate)-margin , h );
+		}
+
+}
+
+
 void Slider::onButtonOn( int x, int y )
 {
 	slider_pos = (float)x / float(size.w);
+	num->setVal( (max * slider_pos) - min );
 	invalid = true;
 }
 
 void Slider::onDragMoveCursol( int x, int y )
 {
 	slider_pos = (float)x / float(size.w);
+	num->setVal( (max * slider_pos) - min );
 	invalid = true;
 }
 
@@ -728,6 +772,8 @@ void Slider::draw( Screen * sp, NVGcontext* vg )
 
 	Widget::draw(sp,vg);
 	nvgRestore(vg);
+
+	num->draw( sp, vg );
 }
 
 Editbox::Editbox()
@@ -751,20 +797,9 @@ Editbox::Editbox( const char * name , const char * text, int x, int y, int width
 	size.h = height;
 }
 
-void Editbox::draw( Screen * sp, NVGcontext* vg )
+void Editbox::drawinside( Screen * sp, NVGcontext* vg, float x, float y, float w, float h )
 {
 	NVGpaint bg;
-
-	float x = 0;
-	float y = 0;
-	float w = size.w;
-	float h = size.h;
-
-	nvgSave(vg);
-	float m[6];
-	matrix.getMatrix2x3( m );
-	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] );
-
 	bg = nvgBoxGradient(vg, x+1,y+1+1.5f, w-2,h-2, 3,4, nvgRGBA(255,255,255,32), nvgRGBA(32,32,32,32));
 	nvgBeginPath(vg);
 	nvgRoundedRect(vg, x+1,y+1, w-2,h-2, 4-1);
@@ -776,16 +811,99 @@ void Editbox::draw( Screen * sp, NVGcontext* vg )
 	nvgStrokeColor(vg, nvgRGBA(0,0,0,48));
 	nvgStroke(vg);
 
+
+}
+
+void Editbox::draw( Screen * sp, NVGcontext* vg )
+{
+	float x = 0;
+	float y = 0;
+	float w = size.w;
+	float h = size.h;
+
+	nvgSave(vg);
+	float m[6];
+	matrix.getMatrix2x3( m );
+	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] );
+
+	drawinside( sp, vg, x, y, w, h );
+
 	nvgFontSize(vg, 20.0f);
 	nvgFontFace(vg, "sans");
 	nvgFillColor(vg, nvgRGBA(255,255,255,64));
 	nvgTextAlign(vg,NVG_ALIGN_LEFT|NVG_ALIGN_MIDDLE);
 	nvgText(vg, x+h*0.3f,y+h*0.5f,text.c_str(), NULL);
 
+	Widget::draw(sp,vg);
+	nvgRestore(vg);
+}
+
+
+EditboxNum::EditboxNum()
+{
+
+}
+
+EditboxNum::~EditboxNum()
+{
+
+}
+
+EditboxNum::EditboxNum(
+  const char * name ,
+	float val,
+	const char * style,
+	const char * unit,
+	int x, int y, int width, int height  )
+{
+	draggable = false;
+	this->name = name;
+	this->style = style;
+	this->unit = unit;
+	this->val = val;
+	pos.x = x;
+	pos.y = y;
+	size.w = width;
+	size.h = height;
+}
+
+void EditboxNum::draw( Screen * sp, NVGcontext* vg )
+{
+
+	float uw;
+	char text[256];
+
+	float x = 0;
+	float y = 0;
+	float w = size.w;
+	float h = size.h;
+
+	nvgSave(vg);
+	float m[6];
+	matrix.getMatrix2x3( m );
+	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] );
+
+	drawinside( sp, vg, x, y, w, h );
+
+	uw = nvgTextBounds(vg, 0,0, unit.c_str(), NULL, NULL);
+
+	nvgFontSize(vg, 18.0f);
+	nvgFontFace(vg, "sans");
+	nvgFillColor(vg, nvgRGBA(255,255,255,64));
+	nvgTextAlign(vg,NVG_ALIGN_RIGHT|NVG_ALIGN_MIDDLE);
+	nvgText(vg, x+w-h*0.2f,y+h*0.5f,unit.c_str(), NULL);
+
+	snprintf( text, 256, style.c_str(), val );
+	nvgFontSize(vg, 20.0f);
+	nvgFontFace(vg, "sans");
+	nvgFillColor(vg, nvgRGBA(255,255,255,128));
+	nvgTextAlign(vg,NVG_ALIGN_RIGHT|NVG_ALIGN_MIDDLE);
+	nvgText(vg, x+w-uw-h*0.3f,y+h*0.5f,text, NULL);
 
 	Widget::draw(sp,vg);
 	nvgRestore(vg);
 }
+
 
 Label::Label()
 {
@@ -833,7 +951,7 @@ void Label::draw( Screen * sp, NVGcontext* vg )
 
 Screen::Screen()
 {
-
+		invalid = true;
 }
 
 Screen::~Screen()
@@ -884,8 +1002,9 @@ bool Screen::onFrameMove( int time, int cx, int cy, eBtnState btn )
 		}
 	}
 
+invalid = true;
 
-	return invalid;
+	return  invalid;
 }
 
 int Screen::draw( int width, int height )

@@ -176,6 +176,26 @@ public:
 	int connect( eEvent ev, shared_ptr<EventCallBack>  cb );
 	bool onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate );
 
+	virtual float getMargin(){ return margin; }
+	virtual void setMargin( float margin ){ this->margin = margin; }
+
+	virtual void getPosAndSize( float & x, float & y, float & w, float & h )
+	{
+		x = pos.x;
+		y = pos.y;
+		w = size.w;
+		h = size.h;
+	}
+
+	virtual void setPosAndSize( float x, float y, float w, float h )
+	{
+		pos.x = x;
+		pos.y = y;
+		size.w = w;
+		size.h = h;
+		matrix.translate( pos.x, pos.y, 0.0f ); //Todo move
+	}
+
 };
 
 //----------------------------------------------------------------------
@@ -236,14 +256,54 @@ public:
 };
 
 //----------------------------------------------------------------------
+class Editbox : public Widget
+{
+public:
+
+protected:
+	string text;
+	void drawinside( Screen * sp, NVGcontext* vg,float x, float y, float w, float h );
+
+public:
+	Editbox();
+	Editbox( const char * name , const char * text, int x, int y, int width, int height  );
+	virtual ~Editbox( );
+
+	virtual void draw( Screen * sp, NVGcontext* vg );
+};
+
+//----------------------------------------------------------------------
+class EditboxNum : public Editbox
+{
+public:
+
+protected:
+	float val;
+	string style;
+	string unit;
+
+public:
+	EditboxNum();
+	EditboxNum( const char * name , float val, const char * style, const char * unit, int x, int y, int width, int height );
+	virtual ~EditboxNum();
+	virtual void draw( Screen * sp, NVGcontext* vg );
+
+	void setVal( float v ){ this->val = v; }
+};
+
+
+//----------------------------------------------------------------------
 class Slider : public Widget
 {
 public:
 
 protected:
+	float width_rate;
 	float min;
 	float max;
 	float slider_pos;
+	shared_ptr<EditboxNum> num;
+
 public:
 	Slider();
 	Slider( const char * name , const char * title, int x, int y, int width, int height  );
@@ -253,23 +313,12 @@ public:
 
 	virtual void onButtonOn( int x, int y );
 	virtual void onDragMoveCursol( int x, int y );
+
+	virtual void getPosAndSize( float & x, float & y, float & w, float & h );
+	virtual void setPosAndSize( float x, float y, float w, float h );
+
 };
 
-
-//----------------------------------------------------------------------
-class Editbox : public Widget
-{
-public:
-
-protected:
-	string text;
-
-public:
-	Editbox();
-	Editbox( const char * name , const char * text, int x, int y, int width, int height  );
-	virtual ~Editbox( );
-	virtual void draw( Screen * sp, NVGcontext* vg );
-};
 
 //----------------------------------------------------------------------
 class Label : public Widget
