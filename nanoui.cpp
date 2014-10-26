@@ -23,6 +23,9 @@ THE SOFTWARE.
 #include <stdio.h>
 #include "nanoui.h"
 
+#if defined(WIN32)
+#define snprintf    _snprintf
+#endif
 
 namespace nanoui {
 
@@ -329,6 +332,7 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 int Widget::connect( eEvent ev, shared_ptr<EventCallBack> cb )
 {
 	cbks[ev] = cb;
+	return 0;
 }
 
 void Widget::addWidget( shared_ptr<Widget> item )
@@ -1004,13 +1008,15 @@ bool Screen::onFrameMove( int time, int cx, int cy, eBtnState btn )
 	Matrix4x4 tmx;
 	matrix.clear();
 	matrix.push_back( tmx );
+	int i=0;
+
 
 
 	// 時間による処理
 	Widget::onFrameMove(this,time);
 
 	// ボタンイベントによる処理受け取ったところでガード
-	for( int i=0; i<items.size(); i++ )
+	for( i=0; i<items.size(); i++ )
 	{
 		if( items[i]->onButtonEvnet( this, cx,cy, btn) == true )
 		{

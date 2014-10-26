@@ -24,9 +24,14 @@ THE SOFTWARE.
 #define _NANOUI_H_
 
 #ifdef NANOVG_GLEW
-#  include <GL/glew.h>
+	#include <GL/glew.h>
+#else
+	#define GL_GLEXT_PROTOTYPES
 #endif
+
+#define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
+
 #include "nanovg.h"
 
 #include <vector>
@@ -206,19 +211,18 @@ public:
 		matrix.translate( pos.x, pos.y, 0.0f ); //Todo move
 	}
 
-
 	float easeInQuint( float pos) {
 		return pow(pos, 5);
-	}
+	};
 
 	float easeOutQuint( float pos) {
-		return pow((pos-1.0), 5.0)+1.0;
-	}
+		return (pow((pos-1), 5) +1);
+	};
 
 	float easeInOutQuint( float pos) {
 		if ((pos/=0.5) < 1) return 0.5*pow(pos,5);
 		return 0.5 * (pow((pos-2),5) + 2);
-	}
+	};
 
 };
 
@@ -382,10 +386,8 @@ public:
 	int draw( int width, int height );
 	bool isInvalid(){ return invalid; };
 	void addInvalidRect( Rect & rect );
-
 	int getWidth(){ return width; }
 	int getHeight(){ return height; }
-
 /* Event Operation is it nesseray???
 	typedef deque<UiEvent> queEvent;
 	queEvent events;

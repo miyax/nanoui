@@ -26,6 +26,10 @@ THE SOFTWARE.
 #include <memory.h>
 #include <math.h>
 
+#ifndef M_PI
+#define M_PI (3.141519)
+#endif
+
 
 inline float DEG2RAD( float a ){ return a * M_PI/180.0f; }
 inline float RAD2DEG( float a ){ return a * 180.0f / M_PI; }
