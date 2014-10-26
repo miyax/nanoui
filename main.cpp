@@ -21,19 +21,23 @@ THE SOFTWARE.
 */
 
 #include <stdio.h>
+#include <time.h>
+
 
 #ifdef NANOVG_GLEW
-#  include <GL/glew.h>
+	#include <GL/glew.h>
+#else
+	#define GL_GLEXT_PROTOTYPES
 #endif
 
 #define GLFW_INCLUDE_GLCOREARB
 #include <GLFW/glfw3.h>
-#include <GL/gl.h>
+#include "nanovg.h"
+#include "nanovg_gl.h"
+#include "nanovg_gl_utils.h"
 
-#define DNANOVG_GL3_IMPLEMENTATION
 #include "nanoui.h"
 
-#include <time.h>
 
 using namespace nanoui;
 
@@ -553,7 +557,7 @@ int main()
 
 	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
-	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
+	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
 	window = glfwCreateWindow(1000, 600, "NanoUI Test", NULL, NULL);
 	if (!window) {
@@ -581,11 +585,7 @@ int main()
 #endif
 
 	// create nanovg objects
-#if defined(NANOVG_GL3_IMPLEMENTATION)
 	vg = nvgCreateGL3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-#elif defined(NANOVG_GLES3_IMPLEMENTATION)
-	vg = nvgCreateGLES3(NVG_ANTIALIAS | NVG_STENCIL_STROKES | NVG_DEBUG);
-#endif
 	if (vg == NULL) {
 		printf("Could not init nanovg.\n");
 		return -1;

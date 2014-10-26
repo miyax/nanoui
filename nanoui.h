@@ -23,14 +23,24 @@ THE SOFTWARE.
 #ifndef _NANOUI_H_
 #define _NANOUI_H_
 
+#ifdef NANOVG_GLEW
+	#include <GL/glew.h>
+#else
+	#define GL_GLEXT_PROTOTYPES
+#endif
+
+#define GLFW_INCLUDE_GLCOREARB
+#include <GLFW/glfw3.h>
+
 #include "nanovg.h"
-#include "nanovg_gl.h"
-#include "nanovg_gl_utils.h"
 
 #include <vector>
 #include <deque>
 #include <string>
 #include <memory>
+#include <algorithm>
+#include <functional>
+
 using namespace std;
 
 namespace nanoui {
@@ -44,8 +54,13 @@ class Screen;
 
 struct Position
 {
+	Position()
+	{
+		x=y=z=0.0f;
+	}
 	float x;
 	float y;
+	float z;
 };
 
 struct Size
@@ -161,6 +176,7 @@ protected:
 public:
 	Widget * parent;
 	Position pos;
+	Position apos;
 	Size size;
 	Matrix4x4 matrix;
 	Matrix4x4 animetion_mtx;
@@ -194,6 +210,19 @@ public:
 		size.h = h;
 		matrix.translate( pos.x, pos.y, 0.0f ); //Todo move
 	}
+
+	float easeInQuint( float pos) {
+		return pow(pos, 5);
+	};
+
+	float easeOutQuint( float pos) {
+		return (pow((pos-1), 5) +1);
+	};
+
+	float easeInOutQuint( float pos) {
+		if ((pos/=0.5) < 1) return 0.5*pow(pos,5);
+		return 0.5 * (pow((pos-2),5) + 2);
+	};
 
 };
 
@@ -343,6 +372,8 @@ class Screen : public Widget
 protected:
 	NVGcontext* vg;
 	int fontNormal, fontBold, fontIcons;
+	int width;
+	int height;
 
 
 public:
@@ -356,7 +387,8 @@ public:
 	int draw( int width, int height );
 	bool isInvalid(){ return invalid; };
 	void addInvalidRect( Rect & rect );
-
+	int getWidth(){ return width; }
+	int getHeight(){ return height; }
 /* Event Operation is it nesseray???
 	typedef deque<UiEvent> queEvent;
 	queEvent events;

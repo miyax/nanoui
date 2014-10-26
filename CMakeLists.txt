@@ -39,6 +39,7 @@ set( PLATFORM_INCLUDE_DIR
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -g -fPIC" )
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11  -g -fPIC" )
 
+add_definitions(-DNANOVG_GL3_IMPLEMENTATION )
 
 endif ()
 
