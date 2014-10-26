@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 2.8.8)
 
 #---------------------------------------------------------------
-# Project 
+# Project
 #---------------------------------------------------------------
 
 PROJECT(nanoui)
@@ -15,13 +15,13 @@ configure_file (
   "${PROJECT_SOURCE_DIR}/config.h.in"
   "${PROJECT_BINARY_DIR}/config.h"
 )
- 
+
 #---------------------------------------------------------------
 # Platform
 #---------------------------------------------------------------
-set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -g -fPIC" )
-set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11  -g -fPIC" )
-		
+set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -g -fPIC -O0" )
+set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11  -g -fPIC -O0" )
+
 #---------------------------------------------------------------
 # Defines
 #---------------------------------------------------------------
@@ -29,9 +29,9 @@ set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11  -g -fPIC" )
 # include
 set(INCLUDE_DIR
     ${PROJECT_SOURCE_DIR}
-) 
+)
 
-set (SOURCES 
+set (SOURCES
     main.cpp
     nanoui.cpp
     nanovg.c
@@ -40,8 +40,8 @@ set (SOURCES
 include_directories(${INCLUDE_DIR})
 
 add_executable(
-  ${LIBRARY_NAME} 
-  ${SOURCES} 
+  ${LIBRARY_NAME}
+  ${SOURCES}
 )
 
 
@@ -53,7 +53,7 @@ add_executable(
 #---------------------------------------------------------------
 # Link
 #---------------------------------------------------------------
-set (EXTERNAL_LIBS 
+set (EXTERNAL_LIBS
    GL
    GLU
    m
@@ -71,9 +71,5 @@ set (EXTERNAL_LIBS
 
 target_link_libraries(
   ${LIBRARY_NAME}
-  ${EXTERNAL_LIBS}  
+  ${EXTERNAL_LIBS}
   )
-    
- 
-
-
