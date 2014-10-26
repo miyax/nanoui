@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright (c) 2014 Shinya Miyamoto( smiyaxdev@gmail.com )
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -25,6 +25,7 @@ THE SOFTWARE.
 
 
 #ifdef NANOVG_GLEW
+	#define GLEW_STATIC
 	#include <GL/glew.h>
 #else
 	#define GL_GLEXT_PROTOTYPES
@@ -165,6 +166,7 @@ public:
 		atime=-1;
 		duration = 1000.0f;
 		animestate = -1;
+
 	}
 
 	virtual bool onFrameMove( Screen * sp, int time )
@@ -173,7 +175,7 @@ public:
 
 			if( animestate == -1 )
 			{
-					return true;
+				return Button::onFrameMove(sp, time);
 			}
 
 			invalid = true;
@@ -321,6 +323,10 @@ public:
 		pos.y = y;
 		size.w = width;
 		size.h = height;
+
+		hovering = false;
+		atime = -1;
+		scale = 0.0f;
 	}
 
 	virtual bool onFrameMove( Screen * sp, int time )
@@ -484,7 +490,7 @@ public:
 			// preper callback function
 			shared_ptr<OnClickbck> fp(new OnClickbck(this));
 
-			shared_ptr<Button> btn1(new BigButton2( "btn1","OK", 0,0, FIT_PARENT,WRAP_CONTENT ));
+			shared_ptr<Button> btn1(new BigButton2("btn1", "OK", 0, 0, FIT_PARENT, WRAP_CONTENT));
 			btn1->connect( WE_ON_CLICK, fp );
 			p->addWidget(btn1);
 
@@ -559,7 +565,7 @@ int main()
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 2);
 
-	window = glfwCreateWindow(1000, 600, "NanoUI Test", NULL, NULL);
+	window = glfwCreateWindow(1920, 1080, "NanoUI Test", NULL, NULL);
 	if (!window) {
 		glfwTerminate();
 		return -1;
@@ -620,7 +626,7 @@ int main()
 		glfwGetFramebufferSize(window, &fbWidth, &fbHeight);
 
 		// update frame infomation
-		uitest.onFrameMove( dt, mx, my, g_btn );
+		uitest.onFrameMove(dt, mx, my, g_btn);
 
 		// need to draw??
 		if(uitest.isInvalid()){

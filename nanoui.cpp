@@ -1,4 +1,4 @@
-/*
+﻿/*
 Copyright (c) 2014 Shinya Miyamoto( smiyaxdev@gmail.com )
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
@@ -485,6 +485,9 @@ void Button::initBase()
 	preicon=0;
 	colIdle = nvgRGBA(0,96,128,255);
 	colActive = nvgRGBA(0,96*2,255,255);
+	hovering = false;
+	atime = -1;
+	scale = 0.0f;
 }
 
 Button::Button()
@@ -506,6 +509,44 @@ Button::Button( const char * name , const char * title, int x, int y, int width,
 	pos.y = y;
 	size.w = width;
 	size.h = height;
+
+}
+
+bool Button::onFrameMove(Screen * sp, int time)
+{
+	Matrix4x4 mtx;
+
+	if (hovering == false /*&& ((scale/5.0f) >= 0.0f) && ((scale/5.0f) <= 0.01f)*/)
+	{
+		scale = 0.0f;
+		atime = -1;
+		return Widget::onFrameMove(sp,time);
+	}
+
+	if (atime == -1)
+	{
+		atime = time;
+	}
+
+	float t = (float)((time - atime) % 1000) / 1000.0f;
+	scale = 1.0f + (sin(t*M_PI*2.0) + 1.0f)*3.0f;
+	this->invalid = true;
+	return Widget::onFrameMove(sp, time);
+}
+
+void Button::onHoverCursol(int x, int y)
+{
+	hovering = true;
+	pos.z = -1.0f;
+	Widget::onHoverCursol(x, y);
+
+}
+
+void Button::onLeaveCursol()
+{
+	hovering = false;
+	pos.z = 0.0f;
+	Widget::onLeaveCursol();
 }
 
 void Button::draw( Screen * sp, NVGcontext* vg )
@@ -535,6 +576,10 @@ void Button::draw( Screen * sp, NVGcontext* vg )
 		col = colIdle;
 	}
 
+	x = x-scale;
+	y = y-scale;
+	w = w + scale*2;
+	h = h + scale*2;
 
 	bg = nvgLinearGradient(vg, x,y,x,y+h, nvgRGBA(255,255,255,isBlack(col)?16:32), nvgRGBA(0,0,0,isBlack(col)?16:32));
 	nvgBeginPath(vg);
@@ -1009,8 +1054,6 @@ bool Screen::onFrameMove( int time, int cx, int cy, eBtnState btn )
 	matrix.clear();
 	matrix.push_back( tmx );
 	int i=0;
-
-
 
 	// 時間による処理
 	Widget::onFrameMove(this,time);

@@ -24,6 +24,7 @@ THE SOFTWARE.
 #define _NANOUI_H_
 
 #ifdef NANOVG_GLEW
+	#define GLEW_STATIC
 	#include <GL/glew.h>
 #else
 	#define GL_GLEXT_PROTOTYPES
@@ -250,12 +251,20 @@ protected:
 	NVGcolor colIdle;
 	NVGcolor colActive;
 
+	bool hovering;
+	int atime;
+	float scale;
+
 public:
 	Button();
 	Button( const char * name , const char * title, int x, int y, int width, int height  );
 	void initBase();
 	virtual ~Button( );
 	virtual void draw( Screen * sp, NVGcontext* vg );
+
+	virtual bool onFrameMove(Screen * sp, int time);
+	virtual void onHoverCursol(int x, int y);
+	virtual void onLeaveCursol();
 
 };
 
@@ -382,7 +391,7 @@ public:
 	Screen();
 	virtual ~Screen();
 	int initNanoVg( NVGcontext* vg );
-	bool onFrameMove( int time, int cx, int cy, eBtnState btn );
+	bool onFrameMove(int time, int cx, int cy, eBtnState btn);
 	int draw( int width, int height );
 	bool isInvalid(){ return invalid; };
 	void addInvalidRect( Rect & rect );
