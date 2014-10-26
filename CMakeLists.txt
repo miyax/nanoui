@@ -32,10 +32,13 @@ elseif (ANDROID)
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
+set( PLATFORM_INCLUDE_DIR
+  ${PROJECT_SOURCE_DIR}/platforms/linux/include
+)
+
 set( CMAKE_C_FLAGS "${CMAKE_C_FLAGS}  -g -fPIC" )
 set( CMAKE_CXX_FLAGS "${CMAKE_CXX_FLAGS} -std=gnu++11  -g -fPIC" )
 
-add_definitions(-DNANOVG_GL3_IMPLEMENTATION )
 
 endif ()
 
@@ -84,21 +87,21 @@ elseif (ANDROID)
 
 elseif (${CMAKE_SYSTEM_NAME} MATCHES "Linux")
 
-set (EXTERNAL_LIBS
-   GL
-   GLU
-   m
-   GLEW
-   glfw3
-   Xxf86vm
-   pthread
-   X11
-   Xrandr
-   Xinerama
-   Xi
-   Xcursor
-   rt
-)
+  set (EXTERNAL_LIBS
+     GL
+     GLU
+     m
+     GLEW
+     glfw3
+     Xxf86vm
+     pthread
+     X11
+     Xrandr
+     Xinerama
+     Xi
+     Xcursor
+     rt
+  )
 
 endif (MSVC)
 

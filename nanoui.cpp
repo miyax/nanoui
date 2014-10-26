@@ -164,8 +164,17 @@ void Widget::onLeaveCursol()
 	}
 }
 
+bool compare_z( shared_ptr<Widget> left, shared_ptr<Widget> right)
+{
+  return left->pos.z > right->pos.z ;
+}
+
 bool Widget::onFrameMove( Screen * sp, int time )
 {
+	if( items.size() > 0 )
+	{
+			std::sort(items.begin(),items.end(),compare_z);
+	}
 	for( int i=0; i<items.size(); i++ )
 	{
 		items[i]->onFrameMove( sp,time);
@@ -199,6 +208,9 @@ bool Widget::onButtonEvnet( Screen * sp, float x, float y, eBtnState btnstate )
 
 	tmtx.transform( lefttop_x, lefttop_y );
 	tmtx.transform( rightbottom_x, rightbottom_y );
+
+	apos.x = lefttop_x;
+	apos.y = lefttop_y;
 
 	// inside region ?
 	if( x > lefttop_x && y > lefttop_y && x < rightbottom_x && y < rightbottom_y )
@@ -512,7 +524,6 @@ void Button::draw( Screen * sp, NVGcontext* vg )
 	Matrix4x4 tmtx;
 	nvgSave(vg);
 	float m[6];
-
 	tmtx = matrix * animetion_mtx;
 	tmtx.getMatrix2x3( m );
 	nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] );
@@ -961,7 +972,9 @@ void Label::draw( Screen * sp, NVGcontext* vg )
 
 Screen::Screen()
 {
-		invalid = true;
+	invalid = true;
+	width = 0;
+	height = 0;
 }
 
 Screen::~Screen()
@@ -997,6 +1010,7 @@ bool Screen::onFrameMove( int time, int cx, int cy, eBtnState btn )
 	matrix.push_back( tmx );
 	int i=0;
 
+
 	// 時間による処理
 	Widget::onFrameMove(this,time);
 
@@ -1013,13 +1027,13 @@ bool Screen::onFrameMove( int time, int cx, int cy, eBtnState btn )
 		}
 	}
 
-invalid = true;
-
 	return  invalid;
 }
 
 int Screen::draw( int width, int height )
 {
+	this->width = width;
+	this->height = height;
 
 	glViewport(0, 0, width, height);
 

@@ -21,17 +21,16 @@ THE SOFTWARE.
 */
 
 #include <stdio.h>
-#if defined(NANOVG_GLEW)
-#define GLEW_STATIC
-#include <GL/glew.h>
-#define GLFW_INCLUDE_GLCOREARB
-#include <GLFW/glfw3.h>
+
+#ifdef NANOVG_GLEW
+#  include <GL/glew.h>
 #endif
 
-#include "nanovg.h"
-#include "nanovg_gl.h"
-#include "nanovg_gl_utils.h"
+#define GLFW_INCLUDE_GLCOREARB
+#include <GLFW/glfw3.h>
+#include <GL/gl.h>
 
+#define DNANOVG_GL3_IMPLEMENTATION
 #include "nanoui.h"
 
 #include <time.h>
@@ -135,6 +134,312 @@ public:
 
 };
 
+class BigButton : public Button
+{
+protected:
+	float scale;
+	int animestate;
+	bool repeat;
+	int atime;
+	float duration;
+	float targesw;
+	float targesh;
+	float targesx;
+	float targesy;
+	float t;
+public:
+	BigButton( const char * name , const char * title, int x, int y, int width, int height  )
+	{
+		scale = 1.0f;
+		repeat = true;
+		this->name = name;
+		this->title = title;
+		pos.x = x;
+		pos.y = y;
+		size.w = width;
+		size.h = height;
+		atime=-1;
+		duration = 1000.0f;
+		animestate = -1;
+	}
+
+	virtual bool onFrameMove( Screen * sp, int time )
+	{
+			Matrix4x4 mtx;
+
+			if( animestate == -1 )
+			{
+					return true;
+			}
+
+			invalid = true;
+
+			if( atime == -1 )
+			{
+					targesw = sp->getWidth()  / (float)size.w;
+					targesh = sp->getHeight() / (float)size.h;
+					targesx = sp->getWidth() / 2.0f - apos.x -size.w/2.0;
+					targesy = sp->getHeight() / 2.0f  - apos.y -size.h/2.0;
+					atime=time;
+			}
+
+			if( animestate == 0 )
+			{
+				float pos = (float)(time-atime)/(float)duration;
+				float cx = 1.0f + targesw * easeInOutQuint(pos);
+				float cy = 1.0f + targesh * easeInOutQuint(pos);
+				float px = targesx * easeInOutQuint(pos);
+				float py = targesy * easeInOutQuint(pos);
+				//printf("time:%d,%f\n",time,scale);
+
+				mtx.translate( px,py , 0.0f );
+				mtx.translate( ((size.w/2)),((size.h/2)) , 0.0f );
+				mtx.scale( cx, cy, 1.0f );
+				mtx.translate( -((size.w/2)),-((size.h/2)) , 0.0f );
+
+				this->animetion_mtx = mtx;
+
+				if( pos >= 1.0f )
+				{
+					animestate = 1;
+					atime = -1;
+				}
+
+			}else if( animestate == 1 )
+			{
+				float pos = (float)(time-atime)/(float)(duration*5);
+
+				t = (float)(time-atime)/(float)duration;
+				if( pos >= 1.0f )
+				{
+					animestate = 2;
+					atime = -1;
+				}
+			}else if( animestate == 2 )
+			{
+					float pos = (float)(time-atime)/(float)duration;
+					float cx = 1.0f + targesw * ( 1.0f - easeInOutQuint(pos));
+					float cy = 1.0f + targesh * ( 1.0f - easeInOutQuint(pos));
+					float px = targesx * ( 1.0f - easeInOutQuint(pos));
+					float py = targesy * ( 1.0f - easeInOutQuint(pos));
+					//printf("time:%d,%f\n",time,scale);
+
+					mtx.translate( px,py , 0.0f );
+
+					mtx.translate( ((size.w/2)),((size.h/2)) , 0.0f );
+					mtx.scale( cx, cy, 1.0f );
+					mtx.translate( -((size.w/2)),-((size.h/2)) , 0.0f );
+
+					this->animetion_mtx = mtx;
+
+
+					if( pos >= 1.0f )
+					{
+						animestate = -1;
+						atime = -1;
+						this->pos.z = 0.0f;
+					}
+
+			}
+
+			return Button::onFrameMove(sp,time);
+	}
+
+	virtual void draw( Screen * sp, NVGcontext* vg )
+	{
+		Button::draw( sp, vg );
+		if( animestate == 1 )
+		{
+			float cx = sp->getWidth()/2;
+			float cy = sp->getHeight()/2;
+			float r = 72;
+			float a0 = 0.0f + t*6;
+			float a1 = NVG_PI + t*6;
+			float r0 = r;
+			float r1 = r * 0.75f;
+			float ax,ay, bx,by;
+			NVGpaint paint;
+
+			nvgSave(vg);
+			nvgReset(vg);
+			nvgBeginPath(vg);
+			nvgArc(vg, cx,cy, r0, a0, a1, NVG_CW);
+			nvgArc(vg, cx,cy, r1, a1, a0, NVG_CCW);
+			nvgClosePath(vg);
+			ax = cx + cosf(a0) * (r0+r1)*0.5f;
+			ay = cy + sinf(a0) * (r0+r1)*0.5f;
+			bx = cx + cosf(a1) * (r0+r1)*0.5f;
+			by = cy + sinf(a1) * (r0+r1)*0.5f;
+			paint = nvgLinearGradient(vg, ax,ay, bx,by, nvgRGBA(236,239,241,0), nvgRGBA(236,239,241,255));
+			nvgFillPaint(vg, paint);
+			nvgFill(vg);
+			nvgRestore(vg);
+		}
+
+	}
+
+	virtual void onClick( )
+	{
+		atime = -1;
+		repeat = false;
+		title = "";
+		animestate = 0;
+		this->pos.z = -1.0;
+
+	}
+};
+
+class BigButton2 : public Button
+{
+protected:
+	int animestate;
+	int starttime;
+	int duration;
+	float aval;
+	float alpha;
+	int cx;
+	int cy;
+	float r;
+
+public:
+	BigButton2( const char * name , const char * title, int x, int y, int width, int height  )
+	{
+		animestate = 0;
+		starttime = -1;
+		duration = 1000*2;
+		aval = 0.0f;
+		alpha = 0.0f;
+		r = -1.0f;
+
+		this->name = name;
+		this->title = title;
+		pos.x = x;
+		pos.y = y;
+		size.w = width;
+		size.h = height;
+	}
+
+	virtual bool onFrameMove( Screen * sp, int time )
+	{
+ 		// Animation
+		if( animestate == 1 )
+		{
+			if(starttime == -1 )
+			{
+				starttime = time;
+			}
+
+			if( r < 0 )
+			{
+				r = sqrt( (double)sp->getWidth() * (double)sp->getWidth()
+									+ (double)sp->getHeight() * (double)sp->getHeight());
+			}
+
+			float pos = (float)(time-starttime)/(float)duration;
+			aval = r * ( easeInOutQuint(pos));
+			alpha = easeOutQuint(pos);
+
+			if( pos > 1.0f )
+			{
+					pos = 0.0f;
+					animestate = 2;
+					invalid = false;
+					starttime = -1;
+			}else{
+				invalid = true;
+			}
+		// Keep
+		}else if( animestate == 2 )
+		{
+			if(starttime == -1 )
+			{
+				starttime = time;
+			}
+
+			float pos = (float)(time-starttime)/(float)duration;
+			aval = r; //* ( easeInOutQuint(pos));
+
+			if( pos > 1.0f )
+			{
+					pos = 0.0f;
+					animestate = 3;
+					invalid = false;
+					starttime = -1;
+			}else{
+				invalid = true;
+			}
+		// Back
+		}else if( animestate == 3 )
+		{
+				if(starttime == -1 )
+				{
+					starttime = time;
+				}
+
+				float pos = (float)(time-starttime)/(float)duration;
+				aval = r * ( 1.0f - easeInOutQuint(pos));
+				alpha = 1.0f - easeInQuint(pos);
+
+				if( pos > 1.0f )
+				{
+						pos = 0.0f;
+						animestate = 0;
+						invalid = false;
+						starttime = -1;
+				}else{
+					invalid = true;
+					this->pos.z = 0.0f;
+				}
+		}
+
+		return Button::onFrameMove(sp,time);
+	}
+
+	virtual void draw( Screen * sp, NVGcontext* vg )
+	{
+		Button::draw(sp,vg);
+		if( aval > 0.0f ){
+
+			Matrix4x4 tmtx;
+			nvgSave(vg);
+			float m[6];
+			tmtx = matrix * animetion_mtx;
+			tmtx.getMatrix2x3( m );
+			nvgTransform( vg, m[0],m[1],m[2],m[3],m[4],m[5] );
+
+			nvgBeginPath(vg);
+			nvgCircle(vg, cx, cy, aval );
+			nvgFillColor(vg, nvgRGBA(0,96,128,255*alpha));
+			nvgFill(vg);
+			nvgRestore(vg);
+
+			nvgSave(vg);
+			nvgReset(vg);
+			nvgFontSize(vg, 72.0f);
+			nvgFontFace(vg, "sans");
+			nvgTextAlign(vg,NVG_ALIGN_CENTER|NVG_ALIGN_MIDDLE);
+
+			nvgFillColor(vg, nvgRGBA(0,0,0,160*(aval/r)));
+			nvgText(vg, sp->getWidth()/2 * (aval/r) ,sp->getHeight()/2 -1 ,"Searching...", NULL);
+
+			nvgFillColor(vg, nvgRGBA(255,255,255,255*(aval/1200.0f)));
+			nvgText(vg, sp->getWidth()/2 * (aval/r) ,sp->getHeight()/2,"Searching...", NULL);
+			nvgRestore(vg);
+
+		}
+	}
+
+	virtual void onClick( )
+	{
+		this->cx = size.w/2;
+		this->cy = size.h/2;
+		this->animestate = 1;
+		this->pos.z = -1.0;
+	}
+
+
+};
+
 class NanoUiTest : public Screen
 {
 
@@ -146,8 +451,11 @@ public:
 
 	struct OnButtonXYcbk : public EventCallBack
 	{
+	NanoUiTest * parent;
+	OnButtonXYcbk( NanoUiTest * parent ){ this->parent = parent; }
 		virtual void  operator()(UiEvent * p )
 		{
+
 			UiEventXY * pxy = dynamic_cast<UiEventXY *>(p);
 			if(pxy)
 			{
@@ -158,9 +466,10 @@ public:
 
 	struct OnClickbck : public EventCallBack
 	{
+		NanoUiTest * parent;
+		OnClickbck( NanoUiTest * parent ){ this->parent = parent; }
 		virtual void  operator()(UiEvent * p )
 		{
-				printf("OnClickbck!!");
 		}
 	};
 
@@ -169,17 +478,17 @@ public:
 		shared_ptr<Panel> p(new Panel( "panel1","Panel Test", 10,10, 200,480 ));
 
 			// preper callback function
-			shared_ptr<OnClickbck> fp(new OnClickbck());
+			shared_ptr<OnClickbck> fp(new OnClickbck(this));
 
-			shared_ptr<Button> btn1(new Button( "btn1","OK", 0,0, FIT_PARENT,WRAP_CONTENT ));
+			shared_ptr<Button> btn1(new BigButton2( "btn1","OK", 0,0, FIT_PARENT,WRAP_CONTENT ));
 			btn1->connect( WE_ON_CLICK, fp );
 			p->addWidget(btn1);
 
-			shared_ptr<AnimateButton> btn2(new AnimateButton( "btn2","OK2", 0,0, FIT_PARENT,WRAP_CONTENT ));
-			btn2->connect( WE_ON_CLICK, fp );
+			shared_ptr<BigButton> btn2(new BigButton( "btn2","OK2", 0,0, FIT_PARENT,WRAP_CONTENT ));
+			//btn2->connect( WE_ON_CLICK, fp );
 			p->addWidget(btn2);
 
-			shared_ptr<OnButtonXYcbk> fpxy(new OnButtonXYcbk());
+			shared_ptr<OnButtonXYcbk> fpxy(new OnButtonXYcbk(this));
 
 			shared_ptr<CheckButton> btn3(new CheckButton( "btn3","CheckBoxTest", 0,0, FIT_PARENT,WRAP_CONTENT ));
 			btn3->connect( WE_ON_BUTTON_ON, fpxy );
@@ -241,11 +550,11 @@ int main()
 		printf("Failed to init GLFW.");
 		return -1;
 	}
-#if defined(NANOVG_GLES3_IMPLEMENTATION)
-	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_ES_API);
+
+	glfwWindowHint(GLFW_CLIENT_API, GLFW_OPENGL_API);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MAJOR, 3);
 	glfwWindowHint(GLFW_CONTEXT_VERSION_MINOR, 0);
-#endif	
+
 	window = glfwCreateWindow(1000, 600, "NanoUI Test", NULL, NULL);
 	if (!window) {
 		glfwTerminate();

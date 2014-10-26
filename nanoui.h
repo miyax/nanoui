@@ -23,11 +23,9 @@ THE SOFTWARE.
 #ifndef _NANOUI_H_
 #define _NANOUI_H_
 
-#ifdef NANOVG_GLEW
-#  include <GL/glew.h>
-#endif
-#include <GLFW/glfw3.h>
 #include "nanovg.h"
+#include "nanovg_gl.h"
+#include "nanovg_gl_utils.h"
 
 #include <vector>
 #include <deque>
